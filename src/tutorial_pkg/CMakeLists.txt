@@ -1,9 +1,3 @@
-# Python scripts
-install( PROGRAMS scripts/talker DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/listener DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/test-camera DESTINATION lib/${PROJECT_NAME} )
-
-
 cmake_minimum_required(VERSION 3.8)
 project(tutorial_pkg)
 
@@ -28,5 +22,10 @@ if(BUILD_TESTING)
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+# Python scripts
+install( PROGRAMS scripts/talker DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/listener DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/test-camera DESTINATION lib/${PROJECT_NAME} )
 
 ament_package()
