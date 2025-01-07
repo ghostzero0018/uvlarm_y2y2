@@ -29,6 +29,6 @@ install( PROGRAMS scripts/talker DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/listener DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/test_move DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/test-camera DESTINATION lib/${PROJECT_NAME} )
-
+install( PROGRAMS scripts/scan_echo DESTINATION lib/${PROJECT_NAME} )
 
 ament_package()
