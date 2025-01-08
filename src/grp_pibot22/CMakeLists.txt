@@ -29,4 +29,9 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 
+# Python scripts
+install( PROGRAMS scripts/robot_camera DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/robot_move DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/robot_sensor DESTINATION lib/${PROJECT_NAME} )
+
 ament_package()
