@@ -8,6 +8,8 @@ Robot number: Pibot22
 
 Authors: Zhiyan.PIAO, Yin.LI, Yinpu.CHEN
 
+The grp_pibot file is in src folder
+
 ## Dependencies
 
 This work relies on Stage Simulator.
