@@ -29,6 +29,6 @@ git push
 ```sh
 ghostzero0018 -- Laptop of IMT Nord Europe named 'DATA'
 Ghostzero00018 -- Yinpu.CHEN
-YinLi-Y2Y2 -- Yin.Li
+YinLi-Y2Y2 -- Yin.LI
 ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
 ```
