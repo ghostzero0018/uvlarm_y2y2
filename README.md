@@ -55,28 +55,33 @@ colcon build  #Generate automaticlly build, log and install file, which are no n
 #Log: for logs
 
 
-(2) After creating the package file, create a folder named `scripts` inside your root directory (for this course is uvlarm_y2y2) to store the Python scripts. Note that scripts are essential as they serve as Nodes.
+(2) After creating the package file, create a folder named `scripts` inside your root directory 
+(for this course is uvlarm_y2y2) to store the Python scripts. Note that scripts are essential as they serve as Nodes.
 # Create a playground folder
 mkdir playground  # Playground means that in this folder we just test the functionality of Python 3 scripts not run in ROS2
 touch playground/script_1.py  # Create a script file (if it does not exist)
 touch playground/script_2.py  # Create another script file (if it does not exist)
 ...     
 ...
-Tip1: If you want to copy the previously created scripts and place them into another foleder(here is the pkg we are working in), perform like this:
+Tip1: If you want to copy the previously created scripts 
+and place them into another foleder
+(here is the pkg we are working in), perform like this:
 
 mkdir your_another_pkg/scripts  # Replace <your_another_pkg> with your another pkg name
 cp playground/script_1.py your_another_pkg/scripts/script_1  # Copy and paste the the content of previous created script_1.py into script_1 of the project pkg 
 cp playground/script_2.py your_another_pkg/scripts/script_2  # Copy and paste the the content of previous created script_2.py into script_2 of the project pkg
 o
 
-Tip2: Also, we need to inform the specific interpreter that can process our script (ie python3). Add a line
+Tip2: Also, we need to inform the specific interpreter that can process our script (ie python3). 
+Add a line
 
 #!/usr/bin/python3 
 
 at the first line of each script. 
 
 #! 
-is a shebang meaning that the rest of the line is used to determine the program to interpret the content of the current file. /usr/bin/python3 is simplely the result of the command whereis python3.
+is a shebang meaning that the rest of the line is used to determine the program to interpret the content of the current file. 
+/usr/bin/python3 is simplely the result of the command whereis python3.
 
 
 (3) Modify CMakeLists.txt
