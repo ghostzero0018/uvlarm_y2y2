@@ -2,6 +2,8 @@
 install/
 log/
 pkg-stage/
+playground/
+tutorial_pkg/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
