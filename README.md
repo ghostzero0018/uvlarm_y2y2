@@ -38,7 +38,7 @@ git pull # Get the codes from the git repo
 git push # Send the local codes to the git repo
 ```
 
-1. To correctly manage the structure of a ROS2 package:
+To correctly manage the structure of a ROS2 package:
 For more details, you need to check [ROS Packages](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/package/)
 and [Nodes and Topics](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/first-contact/)
 to configure the packages in a proper way.
