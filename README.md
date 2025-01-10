@@ -8,7 +8,7 @@ Robot number: Pibot22
 
 Authors: Zhiyan.PIAO, Yin.LI, Yinpu.CHEN
 
-The grp_pibot file is in src folder
+The grp_pibot file for Challenge 1 is in src folder
 
 ## Dependencies
 
@@ -30,7 +30,7 @@ git push
 ## Developpers list
 
 ```sh
-ghostzero0018 -- Laptop of IMT Nord Europe named 'DATA'
+ghostzero0018 -- Laptop of IMT Nord Europe named 'DATA',all operators in the group
 Ghostzero00018 -- Yinpu.CHEN
 YinLi-Y2Y2 -- Yin.LI
 ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
