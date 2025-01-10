@@ -1,0 +1,84 @@
+#!/usr/bin/python3
+import rclpy
+from  rclpy.node import Node
+from sensor_msgs.msg import LaserScan
+from geometry_msgs.msg import Twist
+import sys
+import math
+from sensor_msgs.msg import PointCloud
+from geometry_msgs.msg import Point32
+
+# Ros Node process:
+def main():
+    # Initialize ROS and a ROS node
+    rclpy.init(args=sys.argv)
+    node= Node( 'basic_move' )
+
+    # Initialize our control:
+    control= StraightCtrl()
+    control.initializeRosNode( node )
+
+    # infinite Loop:
+    rclpy.spin( node )
+
+    # clean end
+    node.destroy_node()
+    rclpy.shutdown()
+
+class StraightCtrl(Node):
+    def __init__(self):
+        super().__init__('straight_control')
+        self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.subscription_ = self.create_subscription(
+            LaserScan, 'scan', self.scan_callback, 10)
+        self.obstacle_left = False
+        self.obstacle_right = False
+
+    def scan_callback(self, scanMsg):
+        obstacles= []
+        angle= scanMsg.angle_min
+        for aDistance in scanMsg.ranges :
+            if 0.1 < aDistance and aDistance < 5.0 :
+                aPoint= [
+                    math.cos(angle) * aDistance,
+                    math.sin(angle) * aDistance
+                ]
+
+                obstacles.append(aPoint)
+            angle+= scanMsg.angle_increment
+
+# remember to add definitons for self.obstacle_left and self.obstacle_right
+
+
+
+
+        # sample= [ [ round(p[0], 2), round(p[1], 2) ] for p in  obstacles[10:20] ]
+        # self.get_logger().info( f" obs({len(obstacles)}) ...{sample}..." )
+
+        # aPoint= Point32()
+        # aPoint.x= (float)(math.cos(angle) * aDistance)
+        # aPoint.y= (float)(math.sin( angle ) * aDistance)
+        # aPoint.z= (float)(0)
+
+    def control_callback(self):
+        v = Twist()
+        if not self.obstacle_left and not self.obstacle_right:
+            v.linear.x = 1.0
+        elif self.obstacle_left:
+            v.linear.x = 0
+            v.angular.z = -0.5
+        elif self.obstacle_right:
+            v.linear.x = 0
+            v.angular.z = 0.5
+        self.publisher_.publish(v)
+
+def main(args=None):
+    rclpy.init(args=args)
+    straight_control = StraightCtrl()
+    rclpy.spin(straight_control)
+    straight_control.destroy_node()
+    rclpy.shutdown()
+
+# Go:
+if __name__ == '__main__' :
+    main()

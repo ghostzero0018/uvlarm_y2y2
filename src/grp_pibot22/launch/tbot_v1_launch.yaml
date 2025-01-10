@@ -1,0 +1,7 @@
+launch:
+    - node:
+        pkg: "grp_pibot22"
+        exec: "robot_sensor"
+    - node:
+        pkg: "grp_pibot22"
+        exec: "robot_move"

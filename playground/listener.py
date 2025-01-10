@@ -26,5 +26,6 @@ class ROSListener():
     def listener_callback(self, msg):
         self._logger.info( 'I heard: ' + msg.data)
 
+# Execute the function.
 if __name__ == '__main__':
     listen()
