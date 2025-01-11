@@ -26,12 +26,15 @@ endif()
 # Install resource files.
 install(DIRECTORY
   launch
+  config
   DESTINATION share/${PROJECT_NAME}/
 )
 
 # Python scripts
 install( PROGRAMS scripts/robot_camera DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/robot_move DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/robot_sensor DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/robot_bumper DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/scan_echo DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/detect_ghost DESTINATION lib/${PROJECT_NAME} )
 
 ament_package()

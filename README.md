@@ -33,7 +33,7 @@ Important: If you encounter some problems such as "No executable found", please 
 
 ```sh
 git status # Check whether local codes are up-to-date with the git repo or not
-git commit -a # Commit the changes in the code
+git commit -a # Commit (declare)the changes in the code
 git pull # Get the codes from the git repo
 git push # Send the local codes to the git repo
 ```
@@ -42,6 +42,7 @@ To correctly manage the structure of a ROS2 package:
 For more details, you need to check [ROS Packages](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/package/)
 and [Nodes and Topics](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/first-contact/)
 to configure the packages in a proper way.
+If you forget some Linux terminal commands, please refer to [OS and Shell]([text](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/basics/))
 
 ```sh
 # (1) If you want to create a package file with CMakeLists.txt and package.xml automatically generated, use these commands:
@@ -135,7 +136,7 @@ ros2 launch your_another_pkg launch_1.yaml
 # Install resource files.
 install(DIRECTORY
   launch
-  DESTINATION share/${PROJECT_NAME}/
+  DESTINATION share/${PROJECT_NAME}/ # No need to change PROJECT_NAME
 )
 
 # Then in the terminal:
