@@ -1,7 +1,20 @@
 launch:
     - node:
         pkg: "grp_pibot22"
-        exec: "robot_sensor"
+        exec: "scan_echo"
+        name: "scan_echo"
     - node:
         pkg: "grp_pibot22"
         exec: "robot_move"
+        name: "robot_move"
+    - node:
+        pkg: "grp_pibot22"
+        exec: "robot_camera"
+    - node:
+        pkg: "grp_pibot22"
+        exec: "detect_ghost"
+    - node:
+        pkg: "rviz2"
+        exec: "rviz2"
+        name: "rviz2"
+        args: "-d $(find-pkg-share uvlarm-Dominique)/config/challenge1_rviz_config.rviz"
