@@ -190,7 +190,7 @@ To correctly manage the structure of a ROS2 package:
 For more details, you need to check [ROS Packages](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/package/)
 and [Nodes and Topics](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/first-contact/)
 to configure the packages in a proper way.
-If you forget some Linux terminal commands, please refer to [OS and Shell]([text](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/basics/))
+If you forget some Linux terminal commands, please refer to [OS and Shell](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/basics/)
 
 ```sh
 # (1) If you want to create a package file with CMakeLists.txt and package.xml automatically generated, use these commands:
