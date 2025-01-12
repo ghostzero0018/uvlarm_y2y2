@@ -1,6 +1,6 @@
 # uvlarm_y2y2
 
-## Project description
+## Project description for the UVLARM course
 
 Project_Robot
 
@@ -19,13 +19,160 @@ YinLi-Y2Y2 -- Yin.LI
 ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
 ```
 
-## Dependencies
+## Requirements & Installation
+
+This project integrates ROS2, Python, OpenCV, and Intel RealSense. To run it on another machine (Linux OS recommanded), the following dependencies are required:
+
+## 1. ROS2 Installation (Iron)
+
+Follow the official ROS installation instructions to install ROS2 Iron:
+
+- [ROS2 Installation Guide (Iron)](https://docs.ros.org/en/iron/Installation.html)
+
+After installing ROS2 Iron, create your ROS workspace and clone this repository into it. Use the commands below to do so.
+
+```bash
+mkdir -p ~/ros_space/src
+cd ~/ros_space/src
+git clone <repository-url> 
+cd ~/ros_space
+colcon build
+source install/setup.bash
+```
+
+## 2. Intel RealSense SDK 2.0
+
+Install the necessary RealSense drivers and tools:
+
+- Install `librealsense2-dev` and RealSense tools.
+- Verify hardware detection using `realsense-viewer`:
+
+Use the commands below to do so.
+
+```bash
+sudo apt install librealsense2-dev
+realsense-viewer
+```
+
+## 3. Python 3 Dependencies
+
+Make sure you have Python 3 installed. Then, install the following Python packages with commands below:
+
+- Numpy:
+
+  ```bash
+  pip install numpy
+  ```
+
+- OpenCV:
+
+  ```bash
+  pip install opencv-python
+  ```
+
+- pyrealsense2:
+
+  ```bash
+  pip install pyrealsense2
+  ```
+
+- cv_bridge (ROS2 package):
+
+  ```bash
+  sudo apt install ros-iron-cv-bridge
+  ```
+
+## 4. ROS2 Python Dependencies
+
+Install the necessary ROS2 Python dependencies:
+
+- `rclpy` : ROS2 Python client library for writing ROS nodes.
+- `sensor_msgs` : For image data types (`Image`) used in ROS topics.
+- `std_msgs` : For standard message types such as `String` and for publishing detection messages.
+- `cv_bridge` : ROS2 package for converting between OpenCV images and ROS image messages.
+
+Install these dependencies with the commands below:
+
+```bash
+sudo apt install ros-iron-rclpy ros-iron-sensor-msgs ros-iron-std-msgs ros-iron-cv-bridge
+```
+
+## 5. Robot-Specific Message Drivers
+
+Install drivers to interpret robot-specific messages (bumper, laser, etc.) with commands below:
+
+```bash
+cd $ROS_WORKSPACE
+git clone https://github.com/imt-mobisyst/pkg-interfaces.git
+colcon build --base-path pkg-interfaces
+source ./install/setup.bash
+```
+
+## 6. Clone Necessary Repositories
+
+Clone the required repositories into your workspace and build them with commands below:
+
+```bash
+cd ~/ros_space
+git clone https://github.com/imt-mobisyst/pkg-tsim
+colcon build
+source ./install/setup.bash
+```
+
+## 7. Gazebo Installation
+
+If you plan to use Gazebo for simulation, then you need to install the following Gazebo-related packages with commands below:
+
+- **Gazebo**:
+
+  ```bash
+  sudo apt install gazebo=11.10.2+dfsg-1
+  sudo apt install gazebo-common=11.10.2+dfsg-1
+  sudo apt install gazebo-plugin-base=11.10.2+dfsg-1
+  sudo apt install libgazebo-dev=11.10.2+dfsg-1
+  sudo apt install libgazebo11:amd64=11.10.2+dfsg-1
+  ```
+
+- **ROS2 Gazebo Packages**:
+
+  ```bash
+  sudo apt install ros-iron-gazebo-dev=3.7.0-3jammy.20230622.191804
+  sudo apt install ros-iron-gazebo-msgs=3.7.0-3jammy.20231117.090251
+  sudo apt install ros-iron-gazebo-plugins=3.7.0-3jammy.20231117.111548
+  sudo apt install ros-iron-gazebo-ros=3.7.0-3jammy.20231117.104944
+  sudo apt install ros-iron-gazebo-ros-pkgs=3.7.0-3jammy.20231117.114324
+  sudo apt install ros-iron-turtlebot3-gazebo
+  ```
+
+These packages are necessary for integrating Gazebo into ROS2, and for using Gazebo to do robot simulation in the project.
+
+## 8. Compilation and Execution
+
+- Clone this repository into your ROS2 workspace.
+- From the root of the workspace, build the project:
+
+```bash
+colcon build
+source install/setup.bash
+```
+
+- Launch a yaml launch file to automatically run several scripts in order to perform the desired funciton, for example:
+
+```bash
+ros2 launch tutorial_pkg simulation_launch.yaml
+```
+
+---
+
+By following these steps, you should be able to successfully set up and run the project on your own machine.
+
+## 9. Other dependency that might be useful
 
 This work relies on Stage Simulator.
-You need to follow [profs tutorial](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/simulation/)
+You need to follow [tutorial](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/simulation/)
 to have it installed.
 
-## ROS2 Structure Developer instructions for others in the group
+## ROS2 Structure Developer instructions for others in the group (If you are the beginner of ROS2 in Linux, then it is recommended to read this)
 
 Important: If you encounter some problems such as "No executable found", please follow the standard procedures in part 2 to solve the errors.
 
