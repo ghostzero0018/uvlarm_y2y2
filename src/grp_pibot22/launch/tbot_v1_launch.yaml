@@ -17,4 +17,4 @@ launch:
         pkg: "rviz2"
         exec: "rviz2"
         name: "rviz2"
-        args: "-d $(find-pkg-share uvlarm-Dominique)/config/challenge1_rviz_config.rviz"
+        args: "-d $(find-pkg-share grp_pibot22)/config/challenge1_rviz2_config.rviz"
