@@ -12,12 +12,13 @@ The grp_pibot file for Challenge 1 is in the src folder.
 
 ## Developers list
 
-```sh
 ghostzero0018 -- Laptop of IMT Nord Europe named 'DATA', used by all members of the group
+
 Ghostzero00018 -- Yinpu.CHEN
+
 YinLi-Y2Y2 -- Yin.LI
+
 ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
-```
 
 ## Requirements & Installation
 
@@ -172,7 +173,7 @@ This work relies on Stage Simulator.
 You need to follow [tutorial](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/simulation/)
 to have it installed.
 
-## ROS2 Structure Developer instructions for others in the group (If you are the beginner of ROS2 in Linux, then it is recommended to read this)
+## Project Structure and Integration Developer's instructions for others in the group (If you are the beginner of ROS2 in Linux, then it is also recommended to read this)
 
 Important: If you encounter some problems such as "No executable found", please follow the standard procedures in part 2 to solve the errors.
 
