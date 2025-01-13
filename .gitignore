@@ -3,6 +3,7 @@ install/
 log/
 pkg-stage/
 tutorial_pkg/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
