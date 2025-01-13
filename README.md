@@ -1,10 +1,10 @@
-# uvlarm_y2y2
+# uvlarm_y2y2 - Robot n°22
 
 ## Project description for the UVLARM course
 
-Project_Robot
+Project Robot based on ROS2 env, OS Linux
 
-Robot number: Pibot22
+Robot callsign: Pibot22
 
 Authors: Zhiyan.PIAO, Yin.LI, Yinpu.CHEN
 
