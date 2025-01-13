@@ -5,5 +5,5 @@ launch:
         name: "scan_echo"
     - node:
         pkg: "grp_pibot22"
-        exec: "robot_move_test"
-        name: "robot_move_test"
+        exec: "basic_move"
+        name: "basic_move"
