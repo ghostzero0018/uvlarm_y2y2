@@ -1,0 +1,9 @@
+launch:
+    - node:
+        pkg: "grp_pibot22"
+        exec: "scan_echo"
+        name: "scan_echo"
+    - node:
+        pkg: "grp_pibot22"
+        exec: "robot_move_test"
+        name: "robot_move_test"

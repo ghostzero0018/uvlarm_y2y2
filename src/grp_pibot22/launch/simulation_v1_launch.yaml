@@ -1,0 +1,12 @@
+launch:
+  - include:
+      file: "$(find-pkg-share tbot_sim)/launch/challenge-1.launch.py"
+  - node:
+        pkg: "grp_pibot22"
+        exec: "basic_move"
+        param: 
+        - { name: "command_topic", value: 'cmd_vel'}
+  - node:
+        pkg: "grp_pibot22"
+        exec: "scan_echo"
+        name: "scan_echo"

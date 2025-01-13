@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import PointCloud
-from kobuki_ros_interfaces.msg import BumperEvent, ButtonEvent, WheelDropEvent
+from kobuki_ros_interfaces.msg import BumperEvent, ButtonEvent, WheelDropEvent #type: ignore
 import time
 import sys
 
