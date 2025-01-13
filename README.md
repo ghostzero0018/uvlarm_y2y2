@@ -20,11 +20,56 @@ YinLi-Y2Y2 -- Yin.LI
 
 ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
 
+## Package Contents
+
+This document outlines the structure and contents of this software package. The package is organized into several directories, each containing specific types of files crucial for the operation and visualization within the ROS ecosystem and rviz2.
+
+## Directory Structure
+
+### `config`
+
+Contains configuration files for rviz2 visualizations.
+
+- **`challenge1_rviz_config.rviz`**: Configuration for challenge 1 demonstration.
+
+### `launch`
+
+Includes YAML files for launching various components of the robot system.
+
+- **`launch_basic_move_integ.yaml`**: Launches the basic movement of the robot within one script code.
+- **`launch_basic_move.yaml`**: Launches the basic movement of the robot with two script codes.
+- **`launch_basic_move_test.yaml`**: Launches the test-version basic movement of the robot.
+- **`launch_robot_camera.yaml`**: Launches the camera for green ghost detection.
+- **`launch_scan_echo.yaml`**: Launches the test of LIDAR.
+- **`simulation_v1_launch.yaml`**: Launches the complete simulation setup for challenge 1.
+- **`tbot_v1_launch.yaml`**: Launches the complete real-life test for challenge 1.
+
+### `scripts`
+
+Contains scripts that perform specific tasks within the robot system.
+
+- **`basic_move`**: Script for controlling the robot's movement.
+- **`basic_move_integ`**: Script for controlling the robot's movement within one script file.
+- **`basic_move_test`**: Script for controlling the robot's test-version movement.
+- **`robot_camera`**: Handles image capture and analysis.
+- **`detect_ghost`**: Detects green ghosts in the camera feed.
+- **`scan_echo`**: Processes data from the LIDAR.
+
+### Root Files
+
+- **`CMakeLists.txt`**: Specifies the build configuration for the CMake build system.
+- **`package.xml`**: Provides meta-information about the package such as version, dependencies, etc.
+- **`README.md`**: This file, providing an overview of the package contents and structure.
+
+## Additional Information
+
+For more detailed information on each component and how to use them, refer to the specific configuration files and scripts contained within each directory.
+
 ## Requirements & Installation
 
 This project integrates ROS2, Python, OpenCV, and Intel RealSense. To run it on another machine (Linux OS recommanded), the following dependencies are required:
 
-## 1. ROS2 Installation (Iron)
+### 1. ROS2 Installation (Iron)
 
 Follow the official ROS installation instructions to install ROS2 Iron:
 
@@ -41,7 +86,7 @@ colcon build
 source install/setup.bash
 ```
 
-## 2. Intel RealSense SDK 2.0
+### 2. Intel RealSense SDK 2.0
 
 Install the necessary RealSense drivers and tools:
 
@@ -55,7 +100,7 @@ sudo apt install librealsense2-dev
 realsense-viewer
 ```
 
-## 3. Python 3 Dependencies
+### 3. Python 3 Dependencies
 
 Make sure you have Python 3 installed. Then, install the following Python packages with commands below:
 
@@ -83,7 +128,7 @@ Make sure you have Python 3 installed. Then, install the following Python packag
   sudo apt install ros-iron-cv-bridge
   ```
 
-## 4. ROS2 Python Dependencies
+### 4. ROS2 Python Dependencies
 
 Install the necessary ROS2 Python dependencies:
 
@@ -98,7 +143,7 @@ Install these dependencies with the commands below:
 sudo apt install ros-iron-rclpy ros-iron-sensor-msgs ros-iron-std-msgs ros-iron-cv-bridge
 ```
 
-## 5. Robot-Specific Message Drivers
+### 5. Robot-Specific Message Drivers
 
 Install drivers to interpret robot-specific messages (bumper, laser, etc.) with commands below:
 
@@ -109,7 +154,7 @@ colcon build --base-path pkg-interfaces
 source ./install/setup.bash
 ```
 
-## 6. Clone Necessary Repositories
+### 6. Clone Necessary Repositories
 
 Clone the required repositories into your workspace and build them with commands below:
 
@@ -120,7 +165,7 @@ colcon build
 source ./install/setup.bash
 ```
 
-## 7. Gazebo Installation
+### 7. Gazebo Installation
 
 If you plan to use Gazebo for simulation, then you need to install the following Gazebo-related packages with commands below:
 
@@ -147,7 +192,7 @@ If you plan to use Gazebo for simulation, then you need to install the following
 
 These packages are necessary for integrating Gazebo into ROS2, and for using Gazebo to do robot simulation in the project.
 
-## 8. Compilation and Execution
+### 8. Compilation and Execution
 
 - Clone this repository into your ROS2 workspace.
 - From the root of the workspace, build the project:
@@ -167,13 +212,15 @@ ros2 launch tutorial_pkg simulation_launch.yaml
 
 By following these steps, you should be able to successfully set up and run the project on your own machine.
 
-## 9. Other dependency that might be useful
+### 9. Other dependency that might be useful
 
 This work relies on Stage Simulator.
 You need to follow [tutorial](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/simulation/)
 to have it installed.
 
-## Project Structure and Integration Developer's instructions for others in the group (If you are the beginner of ROS2 in Linux, then it is also recommended to read this)
+## Project Structure and Integration Developer's instructions for others in the group
+
+(If you are the beginner of ROS2 in Linux, then it is also recommended to read this)
 
 Important: If you encounter some problems such as "No executable found", please follow the standard procedures in part 2 to solve the errors.
 
