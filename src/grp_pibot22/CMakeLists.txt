@@ -25,11 +25,11 @@ endif()
 
 # Python scripts
 install( PROGRAMS scripts/robot_camera DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/robot_move DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/basic_move DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/robot_bumper DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/scan_echo DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/detect_ghost DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/robot_move_test DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/basic_move_test DESTINATION lib/${PROJECT_NAME} )
 
 
 # Install resource files.
