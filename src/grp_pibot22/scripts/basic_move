@@ -5,6 +5,7 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import PointCloud
 from geometry_msgs.msg import Point32
+from kobuki_ros_interfaces.msg import BumperEvent, ButtonEvent, WheelDropEvent
 import time
 import math
 import sys
@@ -76,7 +77,23 @@ class StraightCtrl(Node):
             self.scan_callback, 10
         )
         
+        # Initialize bumper callback
+        self._bumper_subscriber = self.create_subscription(
+            BumperEvent, '/events/bumper',
+            self.bumper_callback, 10
+        )
         
+        # Initialize button callback
+        self._button_subscriber = self.create_subscription(
+            ButtonEvent, '/events/button',
+            self.button_callback, 10
+        )
+        
+        # Initialize pickup callback
+        self._pickup_subscriber = self.create_subscription(
+            WheelDropEvent, '/events/wheel_drop',
+            self.pickup_callback, 10
+        )
                 
         # Initialize publisher:
         self._pubVelocity = self.create_publisher(
@@ -108,38 +125,38 @@ class StraightCtrl(Node):
     def control_callback(self):
         
         if self._logger is None:
-            return  # Attendre que le logger soit initialisé
+            return  
                 
         if self._can_move:
         
-            # Initialisation des vitesses cibles
+            
             target_linear_velocity = 0.0
             target_angular_velocity = 0.0
 
             if self._bumper_state is not None and not self._is_reversing:
-                # Reculer doucement pendant 1 seconde si le bumper est activé
+               
                 self._is_reversing = True
                 target_linear_velocity = -0.2
                 target_angular_velocity = 0.0
                 self._logger.info(f"Bumper activé ({self._bumper_state}). Marche arrière.")
 
-                # Publier la commande de recul
+                
                 velocity_msg = Twist()
                 velocity_msg.linear.x = target_linear_velocity
                 velocity_msg.angular.z = target_angular_velocity
                 self._pubVelocity.publish(velocity_msg)
 
-                # Attendre une seconde
+                
                 time.sleep(2)
 
-                # Réinitialiser l'état du bumper
+               
                 self._bumper_state = None
                 self._is_reversing = False
                 return
 
-            # Logique de détection de blocage
+            
             if self._obs_right and self._obs_left:
-                # Obstacles des deux côtés
+                
                 if self._nbr_points_left > self._nbr_points_right:
                     target_linear_velocity = 0.0
                     target_angular_velocity = -self._low_angular_speed
@@ -149,22 +166,22 @@ class StraightCtrl(Node):
                     target_angular_velocity = self._low_angular_speed
                     new_direction = 1
 
-                # Vérifier les alternances de direction
+                
                 if new_direction != self._last_direction:
                     self._direction_changes += 1
                     self._stuck_timer += 1
                     self._last_direction = new_direction
                 else:
-                    self._stuck_timer = 0  # Réinitialiser si le mouvement est constant
+                    self._stuck_timer = 0  
 
-                # Si trop d'alternances en peu de temps, considérer un blocage
+                
                 if self._direction_changes > self._stuck_threshold:
                     self._logger.info("Blocage détecté : activation de la récupération.")
-                    self._stuck_recovery_timer = 50  # Temps pour effectuer une action de récupération
+                    self._stuck_recovery_timer = 50  
                     self._direction_changes = 0
 
             else:
-                # Réinitialiser les compteurs si le robot peut se déplacer librement
+                
                 self._direction_changes = 0
                 self._stuck_timer = 0
 
@@ -182,28 +199,49 @@ class StraightCtrl(Node):
                     self._last_direction = 0
 
             if self._stuck_recovery_timer > 0:
-                # Assurez-vous que le robot tourne uniquement
-                target_linear_velocity = -self._low_linear_speed  # Stoppe le mouvement linéaire
-                if self._last_direction != 0:  # Si une direction précédente est connue
+                
+                target_linear_velocity = -self._low_linear_speed  
+                if self._last_direction != 0:  
                     target_angular_velocity = self._max_angular_speed * self._last_direction
                 else:
-                    target_angular_velocity = self._max_angular_speed  # Par défaut, tourne dans un sens fixe
+                    target_angular_velocity = self._max_angular_speed  
 
-            # Diminuez le timer de récupération
+            
             self._stuck_recovery_timer -= 1
 
-            # Appliquer le lissage des vitesses
+            
             self._current_linear_velocity += self._velocity_smoothing_factor * (target_linear_velocity - self._current_linear_velocity)
             self._current_angular_velocity += self._velocity_smoothing_factor * (target_angular_velocity - self._current_angular_velocity)
 
-            # Création du message Twist pour envoyer les commandes au robot
+            
             velocity_msg = Twist()
             velocity_msg.linear.x = self._current_linear_velocity
             velocity_msg.angular.z = self._current_angular_velocity
 
-            # Publication des commandes de vitesse
+            
             self._pubVelocity.publish(velocity_msg)
         
-# Script trigger:
+    def bumper_callback(self, msg):
+        if msg.bumper == BumperEvent.LEFT:
+            self._bumper_state = 0
+        elif msg.bumper == BumperEvent.CENTER:
+            self._bumper_state = 1
+        elif msg.bumper == BumperEvent.RIGHT:
+            self._bumper_state = 2
+        else:
+            self._bumper_state = None
+
+    def button_callback(self, msg):
+        if msg.button == ButtonEvent.BUTTON0:
+            self._can_move = True
+        elif msg.button == ButtonEvent.BUTTON1:
+            self._can_move = False
+            
+    def pickup_callback(self, msg):
+        if msg.state == WheelDropEvent.DROPPED:
+            self._can_move = False
+
+# Go:
 if __name__ == '__main__':
     main()
+
