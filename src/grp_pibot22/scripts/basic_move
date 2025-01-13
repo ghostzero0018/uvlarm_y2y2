@@ -204,26 +204,6 @@ class StraightCtrl(Node):
             # Publication des commandes de vitesse
             self._pubVelocity.publish(velocity_msg)
         
-    def bumper_callback(self, msg):
-        if msg.bumper == BumperEvent.LEFT:
-            self._bumper_state = 0
-        elif msg.bumper == BumperEvent.CENTER:
-            self._bumper_state = 1
-        elif msg.bumper == BumperEvent.RIGHT:
-            self._bumper_state = 2
-        else:
-            self._bumper_state = None
-
-    def button_callback(self, msg):
-        if msg.button == ButtonEvent.BUTTON0:
-            self._can_move = True
-        elif msg.button == ButtonEvent.BUTTON1:
-            self._can_move = False
-            
-    def pickup_callback(self, msg):
-        if msg.state == WheelDropEvent.DROPPED:
-            self._can_move = False
-
-# Go:
+# Script trigger:
 if __name__ == '__main__':
     main()
