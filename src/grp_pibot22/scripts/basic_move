@@ -9,55 +9,60 @@ import time
 import math
 import sys
 
-class StraightCtrl(Node):
+class SmartControl(Node):
     def __init__(self):
         super().__init__('basic_move')
         self._logger = self.get_logger()
-        self._pubVelocity = self.create_publisher(Twist, '/multi/cmd_nav', 10)
-        self.create_subscription(PointCloud, '/points', self.scan_callback, 10)
+        self._pub_velocity = self.create_publisher(Twist, '/multi/cmd_nav', 10)
+        self.create_subscription(PointCloud, '/scan_points', self.scan_callback, 10)
 
-        # Robot state variables
-        self._obs_left = False
-        self._obs_right = False
-        self._is_reversing = False
-        self._current_linear_velocity = 0.0
-        self._current_angular_velocity = 0.0
+        # State variables for obstacles
+        self.obstacle_left = False
+        self.obstacle_right = False
+        self.last_action = None
 
-        # Movement parameters
-        self._velocity_smoothing_factor = 0.08
-        self._max_linear_speed = 0.6
-        self._max_angular_speed = 1.8
+        # Initialize control callback
+        self.create_timer(0.1, self.control_callback)
 
-        # Initialize the control callback
-        self.create_timer(0.05, self.control_callback)
+    def scan_callback(self, point_cloud):
+        # Determine if there are obstacles within 1 meter on either side
+        left_points = [p for p in point_cloud.points if p.y > 0 and p.x < 1]
+        right_points = [p for p in point_cloud.points if p.y <= 0 and p.x < 1]
 
-    def scan_callback(self, pointCloud):
-        self._obs_left = any(p.y > 0 for p in pointCloud.points)
-        self._obs_right = any(p.y <= 0 for p in pointCloud.points)
+        self.obstacle_left = len(left_points) > 0
+        self.obstacle_right = len(right_points) > 0
 
     def control_callback(self):
-        if not self._is_reversing:
-            if self._obs_left and self._obs_right:
-                # Decide direction based on obstacle density
-                self._current_angular_velocity = -self._max_angular_speed if self._obs_left else self._max_angular_speed
-            else:
-                self._current_linear_velocity = self._max_linear_speed
-                self._current_angular_velocity = 0.0
+        msg = Twist()
+        if self.obstacle_left and self.obstacle_right:
+            # Both sides have obstacles, turn left or continue previous action
+            msg.angular.z = -0.5  # Negative for turning left
+            self.last_action = 'turn_left'
+        elif self.obstacle_left:
+            # Only left side has an obstacle, turn right
+            msg.angular.z = 0.5
+            self.last_action = 'turn_right'
+        elif self.obstacle_right:
+            # Only right side has an obstacle, turn left
+            msg.angular.z = -0.5
+            self.last_action = 'turn_left'
+        else:
+            # No obstacles, go straight
+            msg.linear.x = 0.5
+            self.last_action = 'go_straight'
 
-        # Publish the velocity command
-        velocity_msg = Twist()
-        velocity_msg.linear.x = self._current_linear_velocity
-        velocity_msg.angular.z = self._current_angular_velocity
-        self._pubVelocity.publish(velocity_msg)
+        self._pub_velocity.publish(msg)
 
-def main():
-    rclpy.init()
-    node = StraightCtrl()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+def main(args=None):
+    rclpy.init(args=args)
+    node = SmartControl()
+    try:
+        rclpy.spin(node)
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
-# Script trigger
 if __name__ == '__main__':
     main()
+
 

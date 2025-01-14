@@ -20,9 +20,9 @@ class ScanProcessor(Node):
 
     def scan_callback(self, scanMsg):
         distance_threshold = 0.6  # Distance limit for obstacle detection (meters)
-        angle_detection = 65  # Angle limit for obstacle detection (degrees)
+        angle_detection = 45  # Angle limit for obstacle detection (degrees)
 
-        # Calculate angles in radians for -65° to 65°
+        # Calculate angles in radians for -45° to 45°
         angle_min = -angle_detection * (math.pi / 180)
         angle_max = angle_detection * (math.pi / 180)
 

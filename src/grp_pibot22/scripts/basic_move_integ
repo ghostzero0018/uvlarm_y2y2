@@ -5,76 +5,70 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan, PointCloud
 from geometry_msgs.msg import Twist, Point32
 import math
-import time
 
-class RobotController(Node): # Create a RobotController class
-    def __init__(self): # Constructor
-        super().__init__('robot_controller') # Initialize the node
-        self.publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10) # Create a publisher for Twist messages
-        self.subscription = self.create_subscription( # Create a subscription to LaserScan messages
-            LaserScan, 'scan', self.scan_callback, 10 # Set the callback function
-        )
-        self.get_logger().info("Node initialized and ready.") # Log initialization message
+class RobotController(Node):
+    def __init__(self):
+        super().__init__('basic_move_integ')
+        self.publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
+        self.point_cloud_publisher = self.create_publisher(PointCloud, '/points', 10)
+        self.subscription = self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
+        self.get_logger().info("Node initialized and ready.")
 
         # Movement parameters
-        self._obs_left = False # Initialize the left obstacle flag
-        self._obs_right = False # Initialize the right obstacle flag
-        self._current_linear_velocity = 0.0 # Initialize the current linear velocity
-        self._current_angular_velocity = 0.0 # Initialize the current angular velocity
-        self._velocity_smoothing_factor = 0.08 # Set the velocity smoothing factor
-        self._max_linear_speed = 0.6 # Set the maximum linear speed
-        self._max_angular_speed = 1.8 # Set the maximum angular speed
+        self.obstacle_left = False
+        self.obstacle_right = False
+        self.safe_to_move = True
 
-    def scan_callback(self, scanMsg): # Callback function for LaserScan messages
-        distance_threshold = 0.6 # Meters
-        angle_detection = 65  # Degrees
+    def scan_callback(self, scanMsg):
+        # Process laser scan data to generate a point cloud
+        pointCloud = PointCloud()
+        pointCloud.header = scanMsg.header
+        distance_threshold = 0.4  # meters
+        angle_detection = 45  # degrees
 
-        angle_min = -angle_detection * (math.pi / 180) # Convert to radians
-        angle_max = angle_detection * (math.pi / 180) # Convert to radians
-        index_min = int((angle_min - scanMsg.angle_min) / scanMsg.angle_increment) # Calculate indices
-        index_max = int((angle_max - scanMsg.angle_min) / scanMsg.angle_increment) # Calculate indices
- 
-        pointCloud = PointCloud() # Create a point cloud to store detected points
-        pointCloud.header = scanMsg.header # Set the header
-        self._obs_left = False # Reset the obstacle flags
-        self._obs_right = False # Reset the obstacle flags
+        angle_min = -angle_detection * (math.pi / 180)
+        angle_max = angle_detection * (math.pi / 180)
+        index_min = int((angle_min - scanMsg.angle_min) / scanMsg.angle_increment)
+        index_max = int((angle_max - scanMsg.angle_min) / scanMsg.angle_increment)
 
-        for i in range(index_min, index_max + 1): # Iterate over the range of angles
-            if 0.05 < scanMsg.ranges[i] < distance_threshold: # Check for obstacles
-                angle = scanMsg.angle_min + i * scanMsg.angle_increment # Calculate the angle
-                aDistance = scanMsg.ranges[i] # Get the distance
-                if math.sin(angle) > 0: # Check if the obstacle is on the left
-                    self._obs_left = True # Set the left obstacle flag
+        for i in range(index_min, index_max + 1):
+            if 0.05 < scanMsg.ranges[i] < distance_threshold:
+                angle = scanMsg.angle_min + i * scanMsg.angle_increment
+                distance = scanMsg.ranges[i]
+                point = Point32(x=math.cos(angle) * distance, y=math.sin(angle) * distance, z=0.0)
+                pointCloud.points.append(point)
+                if angle > 0:
+                    self.obstacle_left = True
                 else:
-                    self._obs_right = True # Set the right obstacle flag
+                    self.obstacle_right = True
 
-        self.control_movement() # Control the movement based on the obstacles
+        # Publish the processed point cloud
+        self.point_cloud_publisher.publish(pointCloud)
+        self.control_robot()
 
-    def control_movement(self): # Control the movement based on the obstacles
-        target_linear_velocity = 0.0 # Initialize the target linear velocity
-        target_angular_velocity = 0.0 # Initialize the target angular velocity
-
-        if self._obs_left and self._obs_right: # Check if obstacles are on both sides
-            target_angular_velocity = -self._max_angular_speed if self._obs_left else self._max_angular_speed # Decide direction based on obstacle density
+    def control_robot(self):
+        # Determine robot motion based on obstacle detection
+        msg = Twist()
+        if self.obstacle_left and self.obstacle_right:
+            msg.angular.z = -0.5
+        elif self.obstacle_left:
+            msg.angular.z = 0.5
+        elif self.obstacle_right:
+            msg.angular.z = -0.5
         else:
-            target_linear_velocity = self._max_linear_speed # Move forward
-            target_angular_velocity = 0.0 # Stop turning
+            msg.linear.x = 0.5
 
-        self._current_linear_velocity += self._velocity_smoothing_factor * (target_linear_velocity - self._current_linear_velocity) # Smooth the linear velocity
-        self._current_angular_velocity += self._velocity_smoothing_factor * (target_angular_velocity - self._current_angular_velocity) # Smooth the angular velocity
+        # Publish the command
+        self.publisher.publish(msg)
 
-        velocity_msg = Twist() # Create a Twist message
-        velocity_msg.linear.x = self._current_linear_velocity # Set the linear velocity
-        velocity_msg.angular.z = self._current_angular_velocity # Set the angular velocity
-        self.publisher.publish(velocity_msg) # Publish the velocity command
+def main(args=None):
+    rclpy.init(args=args)
+    node = RobotController()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
-def main(args=None): # Main function
-    rclpy.init(args=args) # Initialize the ROS client library
-    node = RobotController() # Create an instance of the RobotController class
-    rclpy.spin(node) # Spin the node
-    node.destroy_node() # Destroy the node
-    rclpy.shutdown() # Shutdown the ROS client library
-
-# Script trigger
 if __name__ == '__main__':
     main()
+
+

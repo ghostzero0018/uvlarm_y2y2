@@ -10,16 +10,6 @@ from cv_bridge import CvBridge
 import signal
 import sys
 
-# Global flag for interrupt handling
-isOk = True # Flag to indicate if the program should continue running
-
-def signalInterruption(signum, frame): # Signal handler for interrupt signal (Ctrl-C)
-    global isOk # Access the global flag variable
-    print("\nCtrl-C pressed, stopping the program.") # Print a message indicating the program is stopping
-    isOk = False # Set the flag to False to stop the program
-
-signal.signal(signal.SIGINT, signalInterruption) # Register the signal handler for interrupt signal
-
 # Class to handle RealSense camera input and publish ROS messages
 class RealSenseCamera(Node): # Create a class that inherits from the Node class
     def __init__(self): # Constructor for the class
