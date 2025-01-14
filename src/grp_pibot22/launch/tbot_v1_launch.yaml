@@ -1,12 +1,8 @@
 launch:
     - node:
         pkg: "grp_pibot22"
-        exec: "scan_echo"
-        name: "scan_echo"
-    - node:
-        pkg: "grp_pibot22"
-        exec: "basic_move"
-        name: "basic_move"
+        exec: "basic_move_test"
+        name: "basic_move_test"
     - node:
         pkg: "grp_pibot22"
         exec: "robot_camera"
