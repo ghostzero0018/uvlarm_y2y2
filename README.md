@@ -218,6 +218,8 @@ This work relies on Stage Simulator.
 You need to follow [tutorial](https://imt-mobisyst.github.io/lct-mobile-robot/tuto-kick-off/simulation/)
 to have it installed.
 
+This work also relies on Pkg-basic.
+
 ## Project Structure and Integration Developer's instructions for others in the group
 
 (If you are the beginner of ROS2 in Linux, then it is also recommended to read this)
