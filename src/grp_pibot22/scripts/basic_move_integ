@@ -2,73 +2,85 @@
 
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import LaserScan, PointCloud
-from geometry_msgs.msg import Twist, Point32
+from sensor_msgs.msg import LaserScan
+from geometry_msgs.msg import Twist
 import math
+import sys
 
-class RobotController(Node):
+class SmartControl(Node):
     def __init__(self):
         super().__init__('basic_move_integ')
-        self.publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
-        self.point_cloud_publisher = self.create_publisher(PointCloud, '/points', 10)
-        self.subscription = self.create_subscription(LaserScan, 'scan', self.scan_callback, 10)
-        self.get_logger().info("Node initialized and ready.")
+        self._logger = self.get_logger()
+        
+        # Initialize publishers and subscribers with error handling
+        try:
+            self._pub_velocity = self.create_publisher(Twist, '/multi/cmd_nav', 10)
+            self._logger.info("Velocity publisher successfully created.")
+        except Exception as e:
+            self._logger.error(f"Failed to create velocity publisher: {str(e)}")
 
-        # Movement parameters
+        try:
+            self.create_subscription(LaserScan, '/scan', self.scan_callback, 10)
+            self._logger.info("Scan subscription successfully created.")
+        except Exception as e:
+            self._logger.error(f"Failed to create scan subscription: {str(e)}")
+
+        # State variables for obstacles
         self.obstacle_left = False
         self.obstacle_right = False
-        self.safe_to_move = True
+        self._scan_received = False  # To handle the 'no scan' state
 
-    def scan_callback(self, scanMsg):
-        # Process laser scan data to generate a point cloud
-        pointCloud = PointCloud()
-        pointCloud.header = scanMsg.header
-        distance_threshold = 0.4  # meters
-        angle_detection = 45  # degrees
+        # Initialize control callback with timer
+        try:
+            self.create_timer(0.1, self.control_callback)
+            self._logger.info("Control timer successfully created.")
+        except Exception as e:
+            self._logger.error(f"Failed to create control timer: {str(e)}")
 
-        angle_min = -angle_detection * (math.pi / 180)
-        angle_max = angle_detection * (math.pi / 180)
-        index_min = int((angle_min - scanMsg.angle_min) / scanMsg.angle_increment)
-        index_max = int((angle_max - scanMsg.angle_min) / scanMsg.angle_increment)
+    def scan_callback(self, msg):
+        self._scan_received = True  # Update flag when scan message is received
+        # Process scan data to find obstacles within 1 meter
+        self.obstacle_left = any(msg.ranges[i] < 1.0 for i in range(len(msg.ranges)//2, len(msg.ranges)) if msg.ranges[i] > 0)
+        self.obstacle_right = any(msg.ranges[i] < 1.0 for i in range(0, len(msg.ranges)//2) if msg.ranges[i] > 0)
 
-        for i in range(index_min, index_max + 1):
-            if 0.05 < scanMsg.ranges[i] < distance_threshold:
-                angle = scanMsg.angle_min + i * scanMsg.angle_increment
-                distance = scanMsg.ranges[i]
-                point = Point32(x=math.cos(angle) * distance, y=math.sin(angle) * distance, z=0.0)
-                pointCloud.points.append(point)
-                if angle > 0:
-                    self.obstacle_left = True
-                else:
-                    self.obstacle_right = True
-
-        # Publish the processed point cloud
-        self.point_cloud_publisher.publish(pointCloud)
-        self.control_robot()
-
-    def control_robot(self):
-        # Determine robot motion based on obstacle detection
-        msg = Twist()
+    def control_callback(self):
+        if not self._scan_received:
+            # If no scan messages are received, stop the robot and log the issue
+            self.publish_velocity(0, 0)
+            self._logger.warn("No scan messages received; robot has been stopped.")
+            return
+        
+        # Reset scan received flag
+        self._scan_received = False
+        
+        # Determine action based on obstacle detection
         if self.obstacle_left and self.obstacle_right:
-            msg.angular.z = -0.5
+            self.publish_velocity(0, -0.5)  # Turn left
         elif self.obstacle_left:
-            msg.angular.z = 0.5
+            self.publish_velocity(0, 0.5)  # Turn right
         elif self.obstacle_right:
-            msg.angular.z = -0.5
+            self.publish_velocity(0, -0.5)  # Turn left
         else:
-            msg.linear.x = 0.5
+            self.publish_velocity(0.5, 0)  # Go straight
 
-        # Publish the command
-        self.publisher.publish(msg)
+    def publish_velocity(self, linear, angular):
+        try:
+            msg = Twist()
+            msg.linear.x = linear
+            msg.angular.z = angular
+            self._pub_velocity.publish(msg)
+            self._logger.info("Velocity command published.")
+        except Exception as e:
+            self._logger.error(f"Failed to publish velocity command: {str(e)}")
 
 def main(args=None):
     rclpy.init(args=args)
-    node = RobotController()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    node = SmartControl()
+    try:
+        rclpy.spin(node)
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
-
-

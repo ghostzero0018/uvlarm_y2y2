@@ -41,7 +41,7 @@ class RobotControl:
 
     def control_callback(self):
         if self._can_move:
-            self.publish_velocity(0.3, 0.0)  # Move forward at half speed
+            self.publish_velocity(0.3, 0.0)  # Move forward
         else:
             self.publish_velocity(0.0, 0.3)  # Turn in place
 

@@ -22,12 +22,12 @@ class RobotControl:
         self._sub_to_scan = None
         self._timer_for_control = None
         self._can_move = True
-        self._obs_threshold = 0.2  # meters
+        self._obs_threshold = 0.5  # meters
 
     def initialize_ros_node(self, ros_node):
         self._logger = ros_node.get_logger()
         self._sub_to_scan = ros_node.create_subscription(LaserScan, '/scan', self.scan_callback, 10)
-        self._pub_velocity = ros_node.create_publisher(Twist, '/cmd_vel', 10)
+        self._pub_velocity = ros_node.create_publisher(Twist, '/multi/cmd_nav', 10)
         self._timer_for_control = ros_node.create_timer(0.1, self.control_callback)
 
     def scan_callback(self, msg):
@@ -41,9 +41,9 @@ class RobotControl:
 
     def control_callback(self):
         if self._can_move:
-            self.publish_velocity(0.5, 0.0)  # Move forward at half speed
+            self.publish_velocity(0.3, 0.0)  # Move forward
         else:
-            self.publish_velocity(0.0, 0.5)  # Turn in place
+            self.publish_velocity(0.0, 0.3)  # Turn in place
 
     def publish_velocity(self, linear, angular):
         velocity_msg = Twist()
