@@ -76,8 +76,8 @@ class Realsense(): # Create a class for the Realsense camera
             print("Depth camera is equired ") # Print a message indicating that a depth camera is required
             exit(0) # Exit the program
 
-        self.config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, 60) # Configure the color stream
-        self.config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 60)  # Configure the depth stream
+        self.config.enable_stream(rs.stream.color, 840, 480, rs.format.bgr8, 60) # Configure the color stream
+        self.config.enable_stream(rs.stream.depth, 840, 480, rs.format.z16, 60)  # Configure the depth stream
         
         # Start streaming
         self.pipeline.start(self.config) # Start the camera stream
