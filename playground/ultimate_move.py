@@ -1,225 +1,166 @@
 #!/usr/bin/python3
-from visualization_msgs.msg import Marker
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Point32
-from std_msgs.msg import String
-from std_msgs.msg import Float32
-from nav_msgs.msg import Odometry
-import sensor_msgs_py.point_cloud2 as pc2
-from std_msgs.msg import Header
-import time
-import math
-import random
-import signal
-import math
-#message to publish:
-from geometry_msgs.msg import Twist
-import transformations as tf
-import rospy
+from visualization_msgs.msg import Marker # Import the Marker message type
+import rclpy # Import the ROS Client Library for Python
+from rclpy.node import Node # Import the Node class from rclpy
+from sensor_msgs.msg import LaserScan # Import the LaserScan message type
+from geometry_msgs.msg import Point32 # Import the Point32 message type
+from std_msgs.msg import String # Import the String message type
+from std_msgs.msg import Float32 # Import the Float32 message type
+from nav_msgs.msg import Odometry # Import the Odometry message type
+import sensor_msgs_py.point_cloud2 as pc2 # Import the PointCloud2 message type
+from std_msgs.msg import Header # Import the Header message type
+import time # Import the time module
+import math # Import the math module
+import random # Import the random module
+import signal # Import the signal module
+# Message to publish:
+from geometry_msgs.msg import Twist # Import the Twist message type
+import transformations as tf # Import the transformations module
+import rospy # Import the rospy module
 
-
-class Move(Node):
-    def __init__(self, fps= 60):
-        super().__init__('move')
-        self.marker_publisher = self.create_publisher( Marker,'marker_test',10)
-        self.create_subscription( Float32, 'x',self.x_callback, 10)
-        self.create_subscription( Float32, 'z',self.z_callback, 10)
-        self.create_subscription( Float32, 'bottlepostion',self.bottlepostion_callback, 10)
-        self.create_subscription( Odometry, 'odom',self.odom_callback,10)
-        self.create_subscription( String, 'detection',self.detection_callback, 10)
-        self.create_subscription( Float32, 'distancebottle',self.distancebottle_callback, 10)
-        self.create_subscription( LaserScan, 'scan', self.scan_callback, 10)
+class Move(Node): # Define the Move class
+    def __init__(self, fps=60): # Define the __init__ method
+        super().__init__('move') # Call the __init__ method of the parent class
+        self.marker_publisher = self.create_publisher(Marker, 'marker_test', 10) # Create a publisher for the Marker message type
+        self.create_subscription(Float32, 'x', self.x_callback, 10) # Create a subscription to the 'x' topic
+        self.create_subscription(Float32, 'z', self.z_callback, 10) # Create a subscription to the 'z' topic
+        self.create_subscription(Float32, 'bottle_position', self.bottle_position_callback, 10) # Create a subscription to the 'bottle_position' topic 
+        self.create_subscription(Odometry, 'odom', self.odom_callback, 10) # Create a subscription to the 'odom' topic
+        self.create_subscription(String, 'detection', self.detection_callback, 10) # Create a subscription to the 'detection' topic
+        self.create_subscription(Float32, 'distance_bottle', self.distance_bottle_callback, 10) # Create a subscription to the 'distance_bottle' topic
+        self.create_subscription(LaserScan, 'scan', self.scan_callback, 10) # Create a subscription to the 'scan' topic
         
-        self.velocity_publisher = self.create_publisher(Twist, '/cmd_vel', 10)  #/multi/cmd_nav
-        self.cloud_publisher = self.create_publisher(pc2.PointCloud2,'laser_link',10)
-        self.isOk = True
-        self.detection = False
-        # 初始化ROS节点（如果在ROS中运行）
+        self.velocity_publisher = self.create_publisher(Twist, '/cmd_vel', 10) # Create a publisher for the Twist message type
+        self.cloud_publisher = self.create_publisher(pc2.PointCloud2, 'laser_link', 10) # Create a publisher for the PointCloud2 message type
+        self.isOk = True # Set the isOk attribute to True
+        self.detection = False # Set the detection attribute to False
+        
+        # Initialize ROS node
         rospy.init_node('odom_to_map_converter')
-        # 创建一个TF监听器
+        
+        # Create a TF listener
         listener = tf.TransformListener()
-        # 等待TF变换树建立完成
+        
+        # Wait for TF transformation tree to be fully available
         rospy.sleep(1.0)
-        #self.distancebottle = -1.0
-        #self.x_label = -1.0
-        #self.y_label = -1.0
-        # 定义目标坐标系和源坐标系
-        self.target_frame = 'map'
-        self.source_frame = 'odom'
 
-    def transform(self):
-        target_frame = self.target_frame
-        source_frame = self.source_frame
+        self.target_frame = 'map' # Define the target and source frames
+        self.source_frame = 'odom' # Define the target and source frames
+
+    def transform(self): # Define the transform method
+        target_frame = self.target_frame # Define the target and source frames
+        source_frame = self.source_frame # Define the target and source frames
         try:
-        # 获取当前时间
             now = rospy.Time.now()
-            # 等待并获取坐标变换信息
-            listener.waitForTransform(target_frame, source_frame, now, rospy.Duration(1.0))
-            (trans, rot) = listener.lookupTransform(target_frame, source_frame, now)
+            listener.waitForTransform(self.target_frame, self.source_frame, now, rospy.Duration(1.0)) # Wait for the transform to be available
+            (trans, rot) = listener.lookupTransform(self.target_frame, self.source_frame, now) # Look up the transform
+            print(f'Translation: {trans}') # Print the translation and rotation
+            print(f'Rotation: {rot}') # Print the translation and rotation
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException): # Handle exceptions
+            print('Failed to obtain transform.') # Print an error message
+            rospy.signal_shutdown('Coordinate transformation completed.') # Shut down the node
 
-            # 输出变换后的坐标
-            print(f'Translation: {trans}')
-            print(f'Rotation: {rot}')
+    def x_callback(self, msg): # Define the x_callback method
+        self.x_label = msg.data # Set the x_label attribute to the data in the message
 
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            print('Failed to obtain transform.')
+    def z_callback(self, msg): # Define the z_callback method
+        self.y_label = msg.data # Set the y_label attribute to the data in the message
 
-            # 在完成后关闭ROS节点
-            rospy.signal_shutdown('Coordinate transformation completed.')
+    def odom_callback(self, msg): # Define the odom_callback method
+        self.x_add = msg.pose.pose.position.x # Set the x_add attribute to the x position in the message
+        self.y_add = msg.pose.pose.position.y # Set the y_add attribute to the y position in the message
+        self.orientation_euler = msg.pose.pose.position.z # Set the orientation_euler attribute to the z position in the message
 
+    def bottle_position_callback(self, msg): # Define the bottle_position_callback method
+        pass # Do nothing
 
-
-    def x_callback(self,msg):
-        self.x_label = msg.data
-
-    def z_callback(self,msg):
-        #print('msg.data')
-        self.y_label = msg.data
-
-    def odom_callback(self,msg):
-        #print("odom_callback")
-        self.x_add = msg.pose.pose.position.x
-        self.y_add = msg.pose.pose.position.y
-
-        self.orientation_euler = msg.pose.pose.position.z
-        #print(self.x_add)
-
-    def bottlepostion_callback(self,msg):
-        pass
-        #print('good')
-
-
-    def marker_callback(self,marker):
-        print('obstacle!!!')
-        pass
+    def marker_callback(self,marker): # Define the marker_callback method
+        print('obstacle_founded') # Print a message
+        pass # Do nothing
         
-
-    def scan_callback(self, scanMsg):
-        angle = scanMsg.angle_min
-        obstacles = []
-        cmd_debug_points_left = []
-        cmd_debug_points_right = []
+    def scan_callback(self, scanMsg): # Define the scan_callback method
+        angle = scanMsg.angle_min # Set the angle to the minimum angle in the scan message
+        obstacles = [] # Create an empty list to store obstacles
+        cmd_debug_points_left = [] # Create an empty list to store debug points
+        cmd_debug_points_right = [] # Create an empty list to store debug points
         
-        transform(self)
+        self.transform() # Call the transform method
 
-        if self.detection == True and hasattr(self, 'x_add'):
-            print('hello')
-            marker = Marker()
-            marker.header.frame_id = 'camera_link'
-            marker.type = Marker.SPHERE
+        if self.detection and hasattr(self, 'x_add'): # Check if detection is True and x_add attribute exists
+            print('Hello_World') # Print a message
+            marker = Marker() # Create a new Marker message
+            marker.header.frame_id = 'camera_link' # Set the frame_id of the marker
+            marker.type = Marker.SPHERE # Set the type of the marker
+            x_real_label = self.x_label # Set the x_real_label to the x_label attribute
+            y_real_label = self.y_label # Set the y_real_label to the y_label attribute
+            if x_real_label and y_real_label: # Check if x_real_label and y_real_label are not None
+                marker.pose.position.x = x_real_label # Set the x position of the marker
+                marker.pose.position.y = y_real_label # Set the y position of the marker
+                marker.pose.position.z = 0.0 # Set the z position of the marker
+                marker.scale.x = 0.2 # Set the x scale of the marker
+                marker.scale.y = 0.2 # Set the y scale of the marker
+                marker.scale.z = 0.2 # Set the z scale of the marker
+                marker.color.r = 1.0 # Set the red color of the marker
+                marker.color.g = 0.0 # Set the green color of the marker
+                marker.color.b = 0.0 # Set the blue color of the marker
+                marker.color.a = 1.0 # Set the alpha value of the marker
+                self.marker_publisher.publish(marker) # Publish the marker message
 
-            # if(0<=self.x_label )and(self.x_label<424):
-            #     ratio = ((424-int(self.x_label))/424*43)
-            #     x_real_label = self.distancebottle*math.sin(math.radians(ratio))*(-1)
-            #     y_real_label = self.distancebottle*math.cos(math.radians(ratio))
+        for aDistance in scanMsg.ranges: # Iterate over the distances in the scan message
+            if 0.1 < aDistance < 5.0: # Check if the distance is within a valid range
+                aPoint = [ # Create a new point
+                    math.cos(angle) * aDistance, # Calculate the x position
+                    math.sin(angle) * aDistance, # Calculate the y position
+                    0.0 # Set the z position to 0.0
+                ] # End of the list
+                obstacles.append(aPoint) # Append the point to the obstacles list
+                if 0.01 < aPoint[1] < 0.2 and 0.1 < aPoint[0] < 0.5: 
+                    cmd_debug_points_left.append(aPoint) # Append the point to the debug points list
+                if -0.2 < aPoint[1] < -0.01 and 0.1 < aPoint[0] < 0.5: 
+                    cmd_debug_points_right.append(aPoint) # Append the point to the debug points list
+            angle += scanMsg.angle_increment # Increment the angle
+        velo = Twist() # Create a new Twist message
             
-            # elif (424<=self.x_label )and(self.x_label<=848):
-            #     ratio = ((int(self.x_label)-424)/424*43)
-            #     print('zzz')
-            #     print(math.radians(ratio))
-            #     x_real_label = self.distancebottle*math.sin(math.radians(ratio))
-            #     y_real_label = self.distancebottle*math.cos(math.radians(ratio))
-            # else :
-            #     x_real_label = None
-            #     y_real_label = None
-
-            x_real_label = self.x_label #+ self.x_add
-            y_real_label = self.y_label #+ self.y_add
-            #print(f'{self.x_add}')
-            #print(f'{self.orientation_euler}')
-            # print('x\n')
-            # print(x_real_label)
-            # print('y\n')
-            # print(y_real_label)
-            
-            if (x_real_label and y_real_label):
-                x_real_label = x_real_label
-                y_real_label = x_real_label
-                marker.pose.position.x = x_real_label
-                marker.pose.position.y = y_real_label
-                marker.pose.position.z = 0.0
-                marker.scale.x = 0.2
-                marker.scale.y = 0.2
-                marker.scale.z = 0.2
-                marker.color.r = 1.0
-                marker.color.g = 0.0
-                marker.color.b = 0.0
-                marker.color.a = 1.0
-                self.marker_publisher.publish(marker)
-
-        for aDistance in scanMsg.ranges:
-            if 0.1 < aDistance < 5.0:
-                aPoint = [
-                    math.cos(angle) * aDistance,
-                    math.sin(angle) * aDistance,
-                    0.0
-                ]
-                obstacles.append(aPoint)
-                if (0.01 < aPoint[1] < 0.2 and 0.1 < aPoint[0] < 0.5) :
-                    cmd_debug_points_left.append(aPoint)
-                if (-0.2 < aPoint[1] < -0.01 and 0.1 < aPoint[0] < 0.5) :
-                    cmd_debug_points_right.append(aPoint)
-            angle += scanMsg.angle_increment
-        velo = Twist()
-            
-        if len(cmd_debug_points_right) > 0:
-            print("avoid Left")
-            velo.angular.z = 1.5
-            velo.linear.x = 0.05
-        
-            
-        elif len(cmd_debug_points_left) > 0:
-            print("avoid right")
-            velo.angular.z = -1.5
-            velo.linear.x = 0.05
-
-        #elif self.detection == True:
+        if len(cmd_debug_points_right) > 0: # Check if the length of the debug points list is greater than 0
+            print("avoid Left") # Print a message
+            velo.angular.z = 1.5 # Set the angular velocity
+            velo.linear.x = 0.05 # Set the linear velocity
+        elif len(cmd_debug_points_left) > 0: # Check if the length of the debug points list is greater than 0
+            print("avoid right") # Print a message
+            velo.angular.z = -1.5 # Set the angular velocity
+            velo.linear.x = 0.05 # Set the linear velocity
         else:
-            velo.linear.x = 0.15
-            velo.angular.z = 0.0 
+            velo.linear.x = 0.15 # Set the linear velocity
+            velo.angular.z = 0.0 # Set the angular velocity 
 
-        #print(velo.linear.x)
-        #print(velo.angular.z)
-        #print(len(cmd_debug_points_right) + len(cmd_debug_points_left))
-        #print(len(cmd_debug_points_right) - len(cmd_debug_points_left))
-        cloudPoints = pc2.create_cloud_xyz32(Header(frame_id='laser_link'),obstacles)
-        self.publish_move(velo, cloudPoints)
+        cloudPoints = pc2.create_cloud_xyz32(Header(frame_id='laser_link'), obstacles) # Create a
+        self.publish_move(velo, cloudPoints) # Call the publish_move method
         
-    def detection_callback(self,detectionMsg):
-        if detectionMsg.data == "bottle unfounded":
-            #print("bottle unfounded")
-            self.detection = False
-        elif detectionMsg.data == "bottle founded":
-            #print("bottle founded")
-            self.detection = True
+    def detection_callback(self, detectionMsg): # Define the detection_callback method
+        if detectionMsg.data == "bottle unfounded": # Check if the data in the message is "bottle unfounded"
+            self.detection = False # Set the detection attribute to False
+        elif detectionMsg.data == "bottle founded": # Check if the data in the message is "bottle founded"
+            self.detection = True # Set the detection attribute to True
     
-    def distancebottle_callback(self,distancebottleMsg):
-        self.distancebottle = distancebottleMsg.data
-        #print(distancebottleMsg.data)
+    def distance_bottle_callback(self, distance_bottleMsg): # Define the distance_bottle_callback method
+        self.distance_bottle = distance_bottleMsg.data # Set the distance_bottle attribute to the data in the message
 
-    def publish_move(self, velo, cloudPoints):
-        self.velocity_publisher.publish(velo)
-        self.cloud_publisher.publish(cloudPoints)
+    def publish_move(self, velo, cloudPoints): # Define the publish_move method
+        self.velocity_publisher.publish(velo) # Publish the velocity message
+        self.cloud_publisher.publish(cloudPoints) # Publish the cloudPoints message
 
+    def signalInteruption(signum, frame): # Define the signalInteruption method
+        print("\nCtrl-c pressed") # Print a message
+        self.isOk = False # Set the isOk attribute to False
 
-
-    def signalInteruption(signum, frame):
-        print( "\nCtrl-c pressed" )
-        self.isOk= False
-
-    
-
-
-
-if __name__ == '__main__':
-    print("move move move")
-    rclpy.init()
-    rosNode = Move()
-    signal.signal(signal.SIGINT, rosNode.signalInteruption)
-    while rosNode.isOk:
-        rclpy.spin_once(rosNode, timeout_sec=0.1)
-    rosNode.destroy_node()
-    print("Ending...")
-    rclpy.shutdown() 
+# Main function
+if __name__ == '__main__': # Check if the script is being run directly
+    print("moving_wheels") # Print a message
+    rclpy.init() # Initialize the ROS client library
+    rosNode = Move() # Create a new Move object
+    signal.signal(signal.SIGINT, rosNode.signalInteruption) # Register the signal handler
+    while rosNode.isOk: # Check if the isOk attribute is True
+        rclpy.spin_once(rosNode, timeout_sec=0.1) # Spin the node
+    rosNode.destroy_node() # Destroy the ROS node
+    print("\nEnding_move") # Print a message
+    rclpy.shutdown() # Shut down the ROS client library
