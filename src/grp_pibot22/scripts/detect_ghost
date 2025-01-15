@@ -32,7 +32,8 @@ class GreenObjectDetector(Node): # Create a class that inherits from the Node cl
 
         # Check for significant green color presence
         if green_pixel_count > self.detection_threshold and not self.ghost_detected: # If the number of green pixels is greater than the threshold and a ghost has not been detected
-            self.publisher.publish(String(data="Green ghost detected!")) # Publish a message to the green_object_detected topic
+            self.get_logger().info(f"Green ghost detected with {green_pixel_count} pixels")
+            self.publisher.publish(String(data="Green_ghost_detected!")) # Publish a message to the green_object_detected topic
             self.ghost_detected = True # Set the ghost_detected flag to True
         elif green_pixel_count < self.detection_threshold: # If the number of green pixels is less than the threshold
             self.ghost_detected = False # Set the ghost_detected flag to False

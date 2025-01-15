@@ -42,11 +42,11 @@ def main(): # Main function for the node
         print(f"Failed to disconnect camera: {ex}") # Print an error message
     try: # Shutdown the ROS node and the ROS client library
         rosNode.destroy_node() # Destroy the ROS node
-    except Exception as e: # Handle any exceptions that occur
+    except Exception as ex: # Handle any exceptions that occur
         print(f"Failed to destory rosNode: {ex}") # Print an error message
     try: # Shutdown the ROS client library
         rclpy.shutdown() # Shutdown the ROS client library
-    except Exception as e: # Handle any exceptions that occur
+    except Exception as ex: # Handle any exceptions that occur
         print(f"Failed to shutdown : {ex}") # Print an error message
     
 # Realsense Node:
@@ -125,7 +125,7 @@ class Realsense(): # Create a class for the Realsense camera
             self.ros_node.get_logger().error("Published.") # Log a message indicating successful publication
             
         except Exception as ex: 
-            self.ros_node.get_logger().error(f"Failed to publish images: {ex}") # Log an error message
+            self.ros_node.get_logger().error(f"Failed to publish images due to: {ex}") # Log an error message
 
 
     def disconnect(self): # disconnect the camera, free the resource.

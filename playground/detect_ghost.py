@@ -6,90 +6,49 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
-from kobuki_ros_interfaces.msg import Sound
 
-# Classe principale du nœud ROS
-class GreenObjectDetector:
-    def __init__(self):
-        self._logger = None
-        self._publisher = None
-        self._subscriber = None
-        self._bridge = CvBridge()
-        self._ghost_detected = False
-        self._detection_threshold = 4000
+# Class for detecting a green object in camera images
+class GreenObjectDetector(Node): # Create a class that inherits from the Node class
+    def __init__(self): # Constructor for the class
+        super().__init__('green_object_detector') # Call the constructor of the parent class
+        self.bridge = CvBridge() # Create a CvBridge object for converting ROS images to OpenCV images
+        self.publisher = self.create_publisher(String, 'green_object_detected', 10) # Create a publisher for the green_object_detected topic
+        self.subscription = self.create_subscription(Image, 'sensor_msgs/image', self.image_callback, 10) # Create a subscription to the camera image topic
+        self.detection_threshold = 4000  # Pixel count threshold for detection
+        self.ghost_detected = False  # State tracking for ghost detection
 
-    def initializeROSnode(self, ros_node):
-        # Initialiser le logger
-        self._logger = ros_node.get_logger()
+    def image_callback(self, msg): # Callback function for the camera image subscription
+        # Convert ROS image message to OpenCV format
+        frame = self.bridge.imgmsg_to_cv2(msg, "bgr8") # Convert the ROS image message to an OpenCV image
 
-        # Initialiser le publisher
-        self._publisher = ros_node.create_publisher(
-            String, 'green_object_detected', 10
-        )
-        
-        self._sound_publisher = ros_node.create_publisher(
-            Sound, 'commands/sound', 10
-        )
+        # Convert BGR to HSV for better color segmentation
+        hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Convert the BGR image to an HSV image
+        lower_green = np.array([35, 100, 50]) # Define the lower HSV values for green color
+        upper_green = np.array([85, 255, 255]) # Define the upper HSV values for green color
 
-        # Initialiser le subscriber
-        self._subscriber = ros_node.create_subscription(
-            Image, 'sensor_msgs/image', self.image_callback, 10
-        )
+        # Create a mask for green color
+        mask = cv2.inRange(hsv_image, lower_green, upper_green) # Create a mask for the green color in the HSV image
+        green_pixel_count = cv2.countNonZero(mask) # Count the number of green pixels in the mask
 
-    def image_callback(self, msg):
-        # Convertir le message ROS en image OpenCV
-        frame = self._bridge.imgmsg_to_cv2(msg, "bgr8")
+        # Check for significant green color presence
+        if green_pixel_count > self.detection_threshold and not self.ghost_detected: # If the number of green pixels is greater than the threshold and a ghost has not been detected
+            self.publisher.publish(String(data="Green ghost detected!")) # Publish a message to the green_object_detected topic
+            self.ghost_detected = True # Set the ghost_detected flag to True
+        elif green_pixel_count < self.detection_threshold: # If the number of green pixels is less than the threshold
+            self.ghost_detected = False # Set the ghost_detected flag to False
 
-        # Convertir l'image de l'espace BGR à l'espace HSV
-        hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # Display images for debugging (can be commented out in production)
+        cv2.imshow('Original Image', frame) # Display the original image    
+        cv2.imshow('Green Mask', mask) # Display the green mask
+        cv2.waitKey(1) # Wait for a short time to allow the images to be displayed
 
-        # Définir la plage de couleur pour détecter le vert (en HSV)
-        lower_green = np.array([35, 100, 50])  # Ajuster selon vos besoins
-        upper_green = np.array([85, 255, 255])
+def main(args=None): # Main function for the node
+    rclpy.init(args=args) # Initialize the ROS client library
+    node = GreenObjectDetector() # Create an instance of the GreenObjectDetector class
+    rclpy.spin(node) # Run the node
+    node.destroy_node() # Destroy the node
+    rclpy.shutdown() # Shutdown the ROS client library
 
-        # Créer un masque basé sur la plage de couleur verte
-        mask = cv2.inRange(hsv_image, lower_green, upper_green)
-
-        # Compter le nombre de pixels verts dans le masque
-        green_pixel_count = cv2.countNonZero(mask)
-
-        # self._logger.info(f"{green_pixel_count} pixels verts détéctés.")
-
-        # Vérifier si le nombre de pixels verts dépasse un certain seuil
-        if green_pixel_count > self._detection_threshold and not self._ghost_detected:
-            self._publisher.publish(String(data="Fantôme détecté!"))
-            sound = Sound()
-            sound.value = 4
-            self._sound_publisher.publish(sound)
-            
-            self._ghost_detected = True
-
-        if green_pixel_count < self._detection_threshold:
-            self._ghost_detected = False
-
-        # Afficher l'image originale et l'image masquée (pour le débogage)
-        cv2.imshow('Image Originale', frame)
-        cv2.imshow('Masque Vert', mask)
-        cv2.waitKey(1)  # Attendre 1 ms pour permettre l'affichage
-
-
-# Fonction principale du nœud ROS
-def main():
-    # Initialiser ROS et un nœud ROS
-    rclpy.init()
-    node = Node('green_object_detector')
-
-    # Créer une instance de la classe de contrôle et initialiser le nœud
-    green_object_detector = GreenObjectDetector()
-    green_object_detector.initializeROSnode(node)
-
-    # Boucle infinie pour exécuter le nœud
-    rclpy.spin(node)
-
-    # Arrêter proprement
-    node.destroy_node()
-    rclpy.shutdown()
-
-# Déclencheur du script
+# Script trigger
 if __name__ == '__main__':
     main()
