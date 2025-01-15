@@ -23,7 +23,7 @@ class RobotControl:
         self._sub_to_scan = None
         self._timer_for_control = None
         self._can_move = True
-        self._obs_threshold = 0.3  # meters
+        self._obs_threshold = 0.5  # meters
         self._robot_speed = 0.3    # Initial speed
         self.min_distance = float('inf')  # Initialize min_distance
         self.scan_angle = np.radians(45)  # 45 degrees in radians
