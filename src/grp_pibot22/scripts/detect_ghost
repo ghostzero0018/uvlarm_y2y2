@@ -23,7 +23,7 @@ class GreenObjectDetector(Node): # Create a class that inherits from the Node cl
 
         # Convert BGR to HSV for better color segmentation
         hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Convert the BGR image to an HSV image
-        lower_green = np.array([35, 100, 50]) # Define the lower HSV values for green color
+        lower_green = np.array([35,255 , 50]) # Define the lower HSV values for green color
         upper_green = np.array([85, 255, 255]) # Define the upper HSV values for green color
 
         # Create a mask for green color

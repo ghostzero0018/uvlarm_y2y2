@@ -83,7 +83,7 @@ class Realsense(): # Create a class for the Realsense camera
         self.pipeline.start(self.config) # Start the camera stream
         
     def initializeROSnode(self, ros_node): # Initialize the ROS node for the camera
-        # Initialize publishers
+        # Init ialize publishers
         self.image_publisher = ros_node.create_publisher(Image, 'sensor_msgs/image', 10) # Create a publisher for the color image
         self.depth_publisher = ros_node.create_publisher(Image, 'sensor_msgs/depth', 10) # Create a publisher for the depth image
         self.ros_node = ros_node
@@ -122,7 +122,7 @@ class Realsense(): # Create a class for the Realsense camera
             msg_depth.header.stamp = msg_image.header.stamp # Set the timestamp of the message
             msg_depth.header.frame_id = "depth" # Set the frame ID of the message
             self.depth_publisher.publish(msg_depth) # Publish the message
-            self.ros_node.get_logger().error("Published.") # Log a message indicating successful publication
+            #self.ros_node.get_logger().error("Published.") # Log a message indicating successful publication
             
         except Exception as ex: 
             self.ros_node.get_logger().error(f"Failed to publish images due to: {ex}") # Log an error message
