@@ -8,4 +8,4 @@ launch:
         pkg: "grp_pibot22"
         exec: "basic_move_test"
         param: 
-        - { name: "command_topic", value: 'cmd_vel'}
+        - { name: "command_topic", value: 'cmd_nav'}

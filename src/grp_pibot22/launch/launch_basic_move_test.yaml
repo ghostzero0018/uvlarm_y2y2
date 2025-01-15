@@ -3,3 +3,8 @@ launch:
         pkg: "grp_pibot22"
         exec: "basic_move_test"
         name: "basic_move_test"
+    - node:
+        pkg: "rviz2"
+        exec: "rviz2"
+        name: "rviz2"
+        args: "-d $(find-pkg-share grp_pibot22)/config/challenge1_rviz2_config.rviz"
