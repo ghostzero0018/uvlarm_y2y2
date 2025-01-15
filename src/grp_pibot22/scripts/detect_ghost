@@ -14,7 +14,7 @@ class GreenObjectDetector(Node): # Create a class that inherits from the Node cl
         self.bridge = CvBridge() # Create a CvBridge object for converting ROS images to OpenCV images
         self.publisher = self.create_publisher(String, 'green_object_detected', 10) # Create a publisher for the green_object_detected topic
         self.subscription = self.create_subscription(Image, 'sensor_msgs/image', self.image_callback, 10) # Create a subscription to the camera image topic
-        self.detection_threshold = 4000  # Pixel count threshold for detection
+        self.detection_threshold = 3000 # Pixel count threshold for detection
         self.ghost_detected = False  # State tracking for ghost detection
 
     def image_callback(self, msg): # Callback function for the camera image subscription
