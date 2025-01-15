@@ -14,16 +14,16 @@ class GreenObjectDetector(Node): # Create a class that inherits from the Node cl
         self.bridge = CvBridge() # Create a CvBridge object for converting ROS images to OpenCV images
         self.publisher = self.create_publisher(String, 'green_object_detected', 10) # Create a publisher for the green_object_detected topic
         self.subscription = self.create_subscription(Image, 'sensor_msgs/image', self.image_callback, 10) # Create a subscription to the camera image topic
-        self.detection_threshold = 3000 # Pixel count threshold for detection
+        self.detection_threshold = 4000 # Pixel count threshold for detection
         self.ghost_detected = False  # State tracking for ghost detection
 
     def image_callback(self, msg): # Callback function for the camera image subscription
         # Convert ROS image message to OpenCV format
         frame = self.bridge.imgmsg_to_cv2(msg, "bgr8") # Convert the ROS image message to an OpenCV image
 
-        # Convert BGR to HSV for better color segmentation
+        # Convert RGB to HSV for better color segmentation
         hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Convert the BGR image to an HSV image
-        lower_green = np.array([35,255 , 50]) # Define the lower HSV values for green color
+        lower_green = np.array([35, 100, 50]) # Define the lower HSV values for green color
         upper_green = np.array([85, 255, 255]) # Define the upper HSV values for green color
 
         # Create a mask for green color
