@@ -34,11 +34,13 @@ class GreenObjectDetector(Node):
             x, y, w, h = cv2.boundingRect(largest_contour)
             cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)  # Draw red rectangle around the detected object
 
-            self.get_logger().info(f"Green ghost detected with {green_pixel_count} pixels")
+            self.get_logger().info(f"Green_ghost_detected_with {green_pixel_count} pixels")
             self.publisher.publish(String(data="Green_ghost_detected!"))
             self.ghost_detected = True
-        else:
-            self.ghost_detected = False
+            
+        elif green_pixel_count < self.detection_threshold: # If the number of green pixels is less than the threshold
+            self.ghost_detected = False # Set the ghost_detected flag to False
+
 
         cv2.imshow('Original Image', frame)
         cv2.imshow('Green Mask', mask)
