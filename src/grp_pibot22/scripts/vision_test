@@ -1,0 +1,116 @@
+#!/usr/bin/python3
+
+import cv2 as cv
+import numpy as np
+import pyrealsense2 as rs
+import math
+
+# Setup RealSense camera
+pipeline = rs.pipeline()
+config = rs.config()
+colorizer = rs.colorizer()
+
+# Set the frame rate to 30 frames per second
+config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30) # Enable depth stream
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30) # Enable color stream
+
+pipeline.start(config) # Start streaming
+
+align_to = rs.stream.depth # Align color image to depth image
+align = rs.align(align_to) # Create alignment object
+
+color_info = (0, 0, 255)  # Color for drawing (B, G, R)
+rayon = 10  # Radius for drawing circles
+
+# Load and prepare template images for matching
+img_rgb_template = cv.imread('car.png') # Load template image
+img_gray_template = cv.cvtColor(img_rgb_template, cv.COLOR_BGR2GRAY) # Convert template image to grayscale
+template = cv.imread('template.png', 0) # Load template image
+w, h = template.shape[::-1] # Get template image width and height
+threshold_template = 0.3 # Threshold for template matching
+
+# Define HSV color segmentation range
+color = 60  # Base HSV hue value
+lo = np.array([color - 15, 50, 50]) # Lower HSV hue value
+hi = np.array([color + 15, 255, 255]) # Upper HSV hue value
+
+# Flag to indicate object detection
+object_detected = False # Flag to indicate object detection
+
+# Distance threshold for considering object detection valid
+distance_threshold = 1.0  # meters
+
+# Create morphological operation kernel
+kernel = np.ones((3, 3), np.uint8) # Morphological operation kernel
+
+try:
+    while True: 
+        # Capture frames from the camera
+        frames = pipeline.wait_for_frames() # Wait for frames
+        aligned_frames = align.process(frames) # Align frames
+        depth_frame = aligned_frames.get_depth_frame() # Get aligned depth frame
+        aligned_color_frame = aligned_frames.get_color_frame() # Get aligned color frame
+
+        if not depth_frame or not aligned_color_frame: # Check if frames are valid
+            continue # Skip to the next iteration
+
+        # Apply colorization to the depth image
+        colorized_depth = colorizer.colorize(depth_frame) # Colorize depth image
+        depth_colormap = np.asanyarray(colorized_depth.get_data()) # Convert depth image to numpy array
+
+        # Convert depth image background to black
+        depth_colormap[depth_colormap == 0] = 0 # Set background to black
+
+        color_intrin = aligned_color_frame.profile.as_video_stream_profile().intrinsics # Get color intrinsics
+        color_image = np.asanyarray(aligned_color_frame.get_data()) # Convert color image to numpy array
+
+        # Calculate central pixel depth and convert to 3D coordinates
+        x, y = int(color_image.shape[1] / 2), int(color_image.shape[0] / 2) # Get central pixel coordinates
+        depth = depth_frame.get_distance(x, y) # Get central pixel depth
+        dx, dy, dz = rs.rs2_deproject_pixel_to_point(color_intrin, [x, y], depth) # Convert central pixel depth to 3D coordinates
+        distance = math.sqrt(dx**2 + dy**2 + dz**2) # Calculate distance from central pixel
+
+        # Object detection based on distance and template matching
+        if distance < distance_threshold:
+            hsv_image = cv.cvtColor(color_image, cv.COLOR_BGR2HSV) # Convert color image to HSV
+            
+            # Color segmentation
+            mask = cv.inRange(hsv_image, lo, hi) # Create mask based on HSV range
+            mask = cv.erode(mask, kernel, iterations=1) # Erode mask
+            mask = cv.dilate(mask, kernel, iterations=1) # Dilate mask
+            image_segmented = cv.bitwise_and(color_image, color_image, mask=mask) # Apply mask to color image
+
+            # Template matching
+            img_gray_segmented = cv.cvtColor(image_segmented, cv.COLOR_BGR2GRAY) # Convert segmented image to grayscale
+            res = cv.matchTemplate(img_gray_segmented, template, cv.TM_CCOEFF_NORMED) # Match template to segmented image
+            loc = np.where(res >= threshold_template) # Find template matches
+
+            # Draw rectangle around detected object
+            object_detected = False
+
+            for pt in zip(*loc[::-1]):
+                cv.rectangle(color_image, pt, (pt[0] + w, pt[1] + h), color_info, 2) # Draw rectangle around detected object
+                object_detected = True
+
+            # Display the combined images
+            images = np.hstack((color_image, depth_colormap, image_segmented)) # Combine color, depth, and segmented images
+
+            # Display the detected region and distance
+            cv.circle(images, (int(x), int(y)), int(rayon), color_info, 2) # Draw circle at central pixel
+            cv.putText(images, "D=" + str(round(distance, 2)), (int(x) + 10, int(y) - 10), 
+                       cv.FONT_HERSHEY_DUPLEX, 1, color_info, 1, cv.LINE_AA) # Display distance at central pixel
+            cv.imshow('RealSense', images) # Display the combined images
+            cv.waitKey(1) # Wait for a key press
+
+            # Print detection status
+            if object_detected:
+                print("Object_detected!") # Print object detected
+            else:
+                print("Object_not_detected.") # Print object not detected
+
+except Exception as ex: # Catch any exceptions
+    print(ex)
+
+finally:
+    # Cleanup and close down the camera pipeline
+    pipeline.stop()
