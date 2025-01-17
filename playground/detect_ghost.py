@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -8,47 +9,47 @@ import cv2
 import numpy as np
 
 # Class for detecting a green object in camera images
-class GreenObjectDetector(Node): # Create a class that inherits from the Node class
-    def __init__(self): # Constructor for the class
-        super().__init__('green_object_detector') # Call the constructor of the parent class
-        self.bridge = CvBridge() # Create a CvBridge object for converting ROS images to OpenCV images
-        self.publisher = self.create_publisher(String, 'green_object_detected', 10) # Create a publisher for the green_object_detected topic
-        self.subscription = self.create_subscription(Image, 'sensor_msgs/image', self.image_callback, 10) # Create a subscription to the camera image topic
-        self.detection_threshold = 4000  # Pixel count threshold for detection
-        self.ghost_detected = False  # State tracking for ghost detection
+class GreenObjectDetector(Node):
+    def __init__(self):
+        super().__init__('green_object_detector')
+        self.bridge = CvBridge()
+        self.publisher = self.create_publisher(String, 'green_object_detected', 10)
+        self.subscription = self.create_subscription(Image, 'sensor_msgs/image', self.image_callback, 10)
+        self.detection_threshold = 4000
+        self.ghost_detected = False
 
-    def image_callback(self, msg): # Callback function for the camera image subscription
-        # Convert ROS image message to OpenCV format
-        frame = self.bridge.imgmsg_to_cv2(msg, "bgr8") # Convert the ROS image message to an OpenCV image
+    def image_callback(self, msg):
+        frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+        hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        lower_green = np.array([35, 100, 50])
+        upper_green = np.array([85, 255, 255])
+        mask = cv2.inRange(hsv_image, lower_green, upper_green)
+        green_pixel_count = cv2.countNonZero(mask)
 
-        # Convert BGR to HSV for better color segmentation
-        hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Convert the BGR image to an HSV image
-        lower_green = np.array([35, 100, 50]) # Define the lower HSV values for green color
-        upper_green = np.array([85, 255, 255]) # Define the upper HSV values for green color
+        # Find contours in the mask
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Create a mask for green color
-        mask = cv2.inRange(hsv_image, lower_green, upper_green) # Create a mask for the green color in the HSV image
-        green_pixel_count = cv2.countNonZero(mask) # Count the number of green pixels in the mask
+        if contours and max(cv2.contourArea(contour) for contour in contours) > self.detection_threshold:
+            largest_contour = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(largest_contour)
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 0, 255), 2)  # Draw red rectangle around the detected object
 
-        # Check for significant green color presence
-        if green_pixel_count > self.detection_threshold and not self.ghost_detected: # If the number of green pixels is greater than the threshold and a ghost has not been detected
-            self.publisher.publish(String(data="Green ghost detected!")) # Publish a message to the green_object_detected topic
-            self.ghost_detected = True # Set the ghost_detected flag to True
-        elif green_pixel_count < self.detection_threshold: # If the number of green pixels is less than the threshold
-            self.ghost_detected = False # Set the ghost_detected flag to False
+            self.get_logger().info(f"Green ghost detected with {green_pixel_count} pixels")
+            self.publisher.publish(String(data="Green_ghost_detected!"))
+            self.ghost_detected = True
+        else:
+            self.ghost_detected = False
 
-        # Display images for debugging (can be commented out in production)
-        cv2.imshow('Original Image', frame) # Display the original image    
-        cv2.imshow('Green Mask', mask) # Display the green mask
-        cv2.waitKey(1) # Wait for a short time to allow the images to be displayed
+        cv2.imshow('Original Image', frame)
+        cv2.imshow('Green Mask', mask)
+        cv2.waitKey(1)
 
-def main(args=None): # Main function for the node
-    rclpy.init(args=args) # Initialize the ROS client library
-    node = GreenObjectDetector() # Create an instance of the GreenObjectDetector class
-    rclpy.spin(node) # Run the node
-    node.destroy_node() # Destroy the node
-    rclpy.shutdown() # Shutdown the ROS client library
+def main(args=None):
+    rclpy.init(args=args)
+    node = GreenObjectDetector()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
-# Script trigger
 if __name__ == '__main__':
     main()

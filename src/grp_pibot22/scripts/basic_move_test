@@ -24,7 +24,7 @@ class RobotControl:
         self._timer_for_control = None
         self._can_move = True
         self._obs_threshold = 0.5  # meters
-        self._robot_speed = 0.3    # Initial speed
+        self._robot_speed = 0.25    # Initial speed
         self.min_distance = float('inf')  # Initialize min_distance
         self.scan_angle = np.radians(45)  # 45 degrees in radians
 
@@ -72,19 +72,19 @@ class RobotControl:
     def adjust_velocity_based_on_obstacle(self):
         # Adjust speed based on proximity to the obstacle
         if self.min_distance < 0.3:
-            self._robot_speed = 0.1  # Slow down significantly
+            self._robot_speed = 0.15  # Slow down significantly
         elif self.min_distance < 0.5:
-            self._robot_speed = 0.2  # Moderate speed
+            self._robot_speed = 0.25  # Moderate speed
 
     def adjust_turning( self ):
         print( f"> adjust_velocity {self.min_distance} - {self.min_point}" )
         # Adjust turning angle based on obstacle proximity
         if self.min_distance < 0.3:
             print( f"> turn 0.5" )
-            return -0.5  # Sharper turn
+            return -0.4  # Sharper turn
         else:
             print( f"> turn 0.3" )
-            return 0.3  # Less sharp turn
+            return 0.25  # Less sharp turn
 
 # Script trigger
 if __name__ == '__main__':
