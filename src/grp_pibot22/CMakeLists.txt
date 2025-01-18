@@ -33,6 +33,7 @@ install( PROGRAMS scripts/detect_test DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/augmented_vision DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/vision_test DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/detect_ghost_backup DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/augmented_detect DESTINATION lib/${PROJECT_NAME} )
 
 # Install resource files.
 install(DIRECTORY
