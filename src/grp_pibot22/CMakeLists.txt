@@ -26,7 +26,6 @@ endif()
 # Python scripts
 install( PROGRAMS scripts/robot_camera DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/basic_move DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/basic_move_integ DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/scan_echo DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/detect_ghost DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/basic_move_test DESTINATION lib/${PROJECT_NAME} )

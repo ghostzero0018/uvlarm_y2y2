@@ -1,5 +1,0 @@
-launch:
-    - node:
-        pkg: "grp_pibot22"
-        exec: "basic_move_integ"
-        name: "basic_move_integ"
