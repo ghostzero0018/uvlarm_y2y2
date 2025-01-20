@@ -4,4 +4,4 @@ launch:
         exec: "robot_camera"
     - node:
         pkg: "grp_pibot22"
-        exec: "detect_ghost"
+        exec: "augmented_detect"

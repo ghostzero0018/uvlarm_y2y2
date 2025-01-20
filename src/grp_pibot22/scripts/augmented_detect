@@ -7,30 +7,16 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
-import math
-import pyrealsense2 as rs
 
+# Class for detecting a green object in camera images
 class GreenObjectDetector(Node):
     def __init__(self):
         super().__init__('green_object_detector')
         self.bridge = CvBridge()
         self.publisher = self.create_publisher(String, 'green_object_detected', 10)
         self.subscription = self.create_subscription(Image, 'sensor_msgs/image', self.image_callback, 10)
-        self.detection_threshold = 4000
-        self.min_contour_area = 500
-        self.color_intrin = None  # Set this to your camera's intrinsic parameters
-        self.ghost_detected = False  # Tracking state for ghost detection
-        self.ghost_count = 0  # Counter for numbering ghosts
-
-    def get_object_distance(self, depth_frame, x, y):
-        depth = depth_frame.get_distance(x, y)
-        if depth == 0:
-            return None  # Handle missing depth data
-
-        point_3d = rs.rs2_deproject_pixel_to_point(self.color_intrin, [x, y], depth)
-        dx, dy, dz = point_3d
-        distance = math.sqrt(dx**2 + dy**2 + dz**2)
-        return distance
+        self.detection_threshold = 4000  # Consider adjusting for sensitivity
+        self.min_contour_area = 500  # Adjust based on the size of the objects
 
     def image_callback(self, msg):
         frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -41,31 +27,27 @@ class GreenObjectDetector(Node):
         green_pixel_count = cv2.countNonZero(mask)
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        detected_ghosts = False
-        self.ghost_count = 0  # Reset the counter for each frame
+        detected_ghosts = []
 
         for contour in contours:
             if cv2.contourArea(contour) > self.min_contour_area:
-                self.ghost_count += 1
                 x, y, w, h = cv2.boundingRect(contour)
-                cx, cy = x + w//2, y + h//2
-                distance = self.get_object_distance(depth_frame, cx, cy)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Draw red rectangle
-                cv2.putText(frame, f"No. {self.ghost_count}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-                detected_ghosts = True
-                if distance:
-                    if not self.ghost_detected:
-                        self.publisher.publish(String(data=f"Green ghost No. {self.ghost_count} detected at a distance of {distance:.2f} meters."))
-                        self.ghost_detected = True
-                else:
-                    if not self.ghost_detected:
-                        self.publisher.publish(String(data=f"Green ghost No. {self.ghost_count} detected but cannot determine the distance."))
-                        self.ghost_detected = True
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)  # Draw red rectangle around each detected object
+                detected_ghosts.append((x + w/2, y + h/2, w, h, cv2.contourArea(contour)))
+
+        for ghost in detected_ghosts:
+            cx, cy, w, h, area = ghost
+            # Report number of pixels in the detected contour and distance calculation
+            self.get_logger().info(f"Green ghost detected with {area} pixels.")
+            focal_length = 500  # Example focal length, adjust based on your camera and object size
+            known_width = 0.2  # Known width of the object in meters
+            distance = (known_width * focal_length) / w
+            self.get_logger().info(f"Green ghost detected at a distance of {distance:.2f} meters.")
 
         if not detected_ghosts:
-            if self.ghost_detected:
-                self.publisher.publish(String(data="No green ghost detected."))
-                self.ghost_detected = False
+            if green_pixel_count < self.detection_threshold:  # No significant green pixels detected
+                self.ghost_detected = False  # Set the ghost_detected flag to False
+            self.publisher.publish(String(data="No green ghost detected."))
 
         cv2.imshow('Original Image', frame)
         cv2.imshow('Green Mask', mask)
@@ -80,5 +62,9 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
+
+
+
 
 
