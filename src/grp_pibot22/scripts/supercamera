@@ -10,10 +10,8 @@ import cv2
 import numpy as np
 import math
 import signal
-import time
 
 
-# Realsense Node
 class Realsense(Node):
     def __init__(self, fps=60):
         super().__init__('realsense')
@@ -50,11 +48,7 @@ class Realsense(Node):
         self.pipeline.start(config)
         self.isOk = True
         self.color_info = (0, 0, 255)
-
-        # Initialize attributes
-        self.depth = 0.0
-        self.distance = 0.0
-        self.dx, self.dz = 0.0, 0.0
+        self.no_object_logged = False  # To track "No object detected" state
 
     def read_imgs(self):
         frames = self.pipeline.wait_for_frames()
@@ -65,6 +59,7 @@ class Realsense(Node):
         color_frame = aligned_frames.get_color_frame()
 
         if not depth_frame or not color_frame:
+            print("Frames not available.")
             return
 
         # Get images
@@ -83,46 +78,55 @@ class Realsense(Node):
 
         # Detect objects
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        print(f"Contours detected: {len(contours)}")  # Debug log
+
+        detected_objects = False
+
         if contours:
-            largest_contour = max(contours, key=cv2.contourArea)
-            ((self.x, self.y), radius) = cv2.minEnclosingCircle(largest_contour)
-            if radius > 30:
-                self.draw_object(depth_frame, color_frame)
+            for contour in contours:
+                ((x, y), radius) = cv2.minEnclosingCircle(contour)
+                if radius > 10:  # Adjust threshold for small object elimination
+                    detected_objects = True
+                    self.draw_object(x, y, radius, depth_frame, color_frame)
+
+        # Log "No object detected" if no objects found
+        if not detected_objects:
+            if not self.no_object_logged:
+                print("No object detected.")
+                self.no_object_logged = True
+        else:
+            self.no_object_logged = False
 
         # Display images
-        cv2.imshow('RealSense', self.color_image)
+        cv2.imshow('RealSense - Color', self.color_image)
+        cv2.imshow('RealSense - Grayscale', mask)  # Show grayscale image
         cv2.waitKey(1)
 
-    def draw_object(self, depth_frame, color_frame):
-        self.x, self.y = int(self.x), int(self.y)
-        self.depth = depth_frame.get_distance(self.x, self.y)
+    def draw_object(self, x, y, radius, depth_frame, color_frame):
+        x, y = int(x), int(y)
+        depth = depth_frame.get_distance(x, y)
 
-        if self.depth > 0:  # Only calculate distance if valid depth is available
+        if depth > 0:  # Only calculate distance if valid depth is available
             intrinsics = color_frame.profile.as_video_stream_profile().intrinsics
-            self.dx, dy, self.dz = rs.rs2_deproject_pixel_to_point(intrinsics, [self.x, self.y], self.depth)
-            self.distance = math.sqrt(self.dx**2 + dy**2 + self.dz**2)
+            dx, dy, dz = rs.rs2_deproject_pixel_to_point(intrinsics, [x, y], depth)
+            distance = math.sqrt(dx**2 + dy**2 + dz**2)
 
-        # Draw object markers
-        cv2.circle(self.color_image, (self.x, self.y), int(self.distance * 100), self.color_info, 2)
-        cv2.putText(self.color_image, f"Object Detected: {self.distance:.2f}m", (self.x + 10, self.y - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.color_info, 2)
+            # Print detection message
+            print(f"Object detected at ({x}, {y}) with distance: {distance:.2f}m")
+
+            # Draw object markers
+            cv2.circle(self.color_image, (x, y), int(radius), self.color_info, 2)
+            cv2.putText(self.color_image, f"Dist: {distance:.2f}m", (x + 10, y - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.color_info, 2)
+        else:
+            print(f"Object detected at ({x}, {y}) but distance unknown.")
 
     def publish_imgs(self):
         # Publish processed image
         msg_image = self.bridge.cv2_to_imgmsg(self.color_image, "bgr8")
         self.image_publisher.publish(msg_image)
 
-        # Publish detection status
-        detection_msg = String()
-        detection_msg.data = "bottle founded" if self.depth > 0 else "bottle unfounded"
-        self.detection_publisher.publish(detection_msg)
-
-        # Publish distance and coordinates
-        self.distancebottle_publisher.publish(Float32(data=self.distance))
-        self.x_publisher.publish(Float32(data=self.dx))
-        self.y_publisher.publish(Float32(data=self.dz))
-
-    def signalInteruption(self, signum, frame):
+    def signalInterruption(self, signum, frame):
         print("\nCtrl-C pressed")
         self.isOk = False
 
@@ -130,7 +134,7 @@ class Realsense(Node):
 def process_img(args=None):
     rclpy.init(args=args)
     rsNode = Realsense()
-    signal.signal(signal.SIGINT, rsNode.signalInteruption)
+    signal.signal(signal.SIGINT, rsNode.signalInterruption)
 
     while rsNode.isOk:
         rsNode.read_imgs()
@@ -145,5 +149,8 @@ def process_img(args=None):
 
 if __name__ == '__main__':
     process_img()
+
+
+
 
 
