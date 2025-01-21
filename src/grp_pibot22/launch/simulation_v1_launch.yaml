@@ -6,6 +6,6 @@ launch:
         exec: "multiplexer"
   - node:
         pkg: "grp_pibot22"
-        exec: "basic_move_test"
+        exec: "ultimate_move"
         param: 
         - { name: "command_topic", value: 'cmd_nav'}

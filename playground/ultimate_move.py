@@ -20,7 +20,7 @@ import rospy # Import the rospy module
 
 class Move(Node): # Define the Move class
     def __init__(self, fps=60): # Define the __init__ method
-        super().__init__('move') # Call the __init__ method of the parent class
+        super().__init__('ultimate_move') # Call the __init__ method of the parent class
         self.marker_publisher = self.create_publisher(Marker, 'marker_test', 10) # Create a publisher for the Marker message type
         self.create_subscription(Float32, 'x', self.x_callback, 10) # Create a subscription to the 'x' topic
         self.create_subscription(Float32, 'z', self.z_callback, 10) # Create a subscription to the 'z' topic

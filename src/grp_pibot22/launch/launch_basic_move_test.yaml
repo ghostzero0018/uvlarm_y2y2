@@ -1,8 +1,8 @@
 launch:
     - node:
         pkg: "grp_pibot22"
-        exec: "basic_move_test"
-        name: "basic_move_test"
+        exec: "ultimate_move"
+        name: "ultimate_move"
     - node:
         pkg: "rviz2"
         exec: "rviz2"
