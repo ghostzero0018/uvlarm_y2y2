@@ -71,36 +71,56 @@ class Realsense(Node):
         h, s, v = cv2.split(hsv)
         mask = ((50 < h) & (h < 85) & (s > 100) & (v > 50)).astype(np.uint8) * 255
 
-        kernel = np.ones((3, 3), np.uint8)
-        mask = cv2.erode(mask, kernel, iterations=1)
-        mask = cv2.dilate(mask, kernel, iterations=1)
-        mask = cv2.blur(mask, (7, 7))
+        # Improve mask with morphological operations
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
         # Detect objects
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         print(f"Contours detected: {len(contours)}")  # Debug log
 
-        detected_objects = False
-
+        detected_objects = []
         if contours:
             for contour in contours:
                 ((x, y), radius) = cv2.minEnclosingCircle(contour)
-                if radius > 10:  # Adjust threshold for small object elimination
-                    detected_objects = True
-                    self.draw_object(x, y, radius, depth_frame, color_frame)
+                if radius > 10:  # Threshold for small object elimination
+                    detected_objects.append((x, y, radius))
 
-        # Log "No object detected" if no objects found
-        if not detected_objects:
+        # Filter overlapping detections
+        filtered_objects = self.filter_overlapping_circles(detected_objects)
+
+        # Draw and log objects
+        if filtered_objects:
+            for x, y, radius in filtered_objects:
+                self.draw_object(x, y, radius, depth_frame, color_frame)
+            self.no_object_logged = False
+        else:
             if not self.no_object_logged:
                 print("No object detected.")
                 self.no_object_logged = True
-        else:
-            self.no_object_logged = False
 
         # Display images
         cv2.imshow('RealSense - Color', self.color_image)
         cv2.imshow('RealSense - Grayscale', mask)  # Show grayscale image
         cv2.waitKey(1)
+
+    def filter_overlapping_circles(self, objects, overlap_threshold=30):
+        """
+        Filter overlapping circles based on the Euclidean distance between their centers.
+        """
+        filtered = []
+        for obj in objects:
+            x1, y1, r1 = obj
+            add_object = True
+            for fx, fy, fr in filtered:
+                distance = math.sqrt((x1 - fx) ** 2 + (y1 - fy) ** 2)
+                if distance < overlap_threshold:
+                    add_object = False
+                    break
+            if add_object:
+                filtered.append(obj)
+        return filtered
 
     def draw_object(self, x, y, radius, depth_frame, color_frame):
         x, y = int(x), int(y)
@@ -149,6 +169,7 @@ def process_img(args=None):
 
 if __name__ == '__main__':
     process_img()
+
 
 
 

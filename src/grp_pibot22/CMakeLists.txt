@@ -38,6 +38,7 @@ install( PROGRAMS scripts/precise_detect DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/ultimate_move DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/supermove DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/supercamera DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/supercamera_proto DESTINATION lib/${PROJECT_NAME} )
 
 # Install resource files.
 install(DIRECTORY

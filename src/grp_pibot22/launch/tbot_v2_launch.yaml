@@ -1,4 +1,4 @@
 launch:
     - node:
         pkg: "grp_pibot22"
-        exec: "supercamera"
+        exec: "supercamera_proto"
