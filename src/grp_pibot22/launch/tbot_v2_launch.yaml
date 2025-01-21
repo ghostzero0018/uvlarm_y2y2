@@ -1,0 +1,8 @@
+launch:
+    - node:
+        pkg: "grp_pibot22"
+        exec: "supermove"
+        name: "supermove"
+    - node:
+        pkg: "grp_pibot22"
+        exec: "supercamera"

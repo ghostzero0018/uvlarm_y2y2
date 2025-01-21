@@ -20,7 +20,7 @@ class Move(Node):
     def initialize_ros_components(self):
         # Publishers
         self.marker_publisher = self.create_publisher(Marker, 'marker_test', 10)
-        self.velocity_publisher = self.create_publisher(Twist, '/multi/cmd_nav', 10)
+        self.velocity_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         self.cloud_publisher = self.create_publisher(pc2.PointCloud2, 'laser_link', 10)
 
         # Subscribers
