@@ -1,41 +1,41 @@
 #!/usr/bin/python3
 
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import Image
-from std_msgs.msg import String, Float32
-from cv_bridge import CvBridge
-import pyrealsense2 as rs
-import cv2
-import numpy as np
-import math
-import signal
+import rclpy # ROS2 Python library
+from rclpy.node import Node # ROS2 Python class for creating a node
+from sensor_msgs.msg import Image # ROS2 Python class for handling image messages
+from std_msgs.msg import String, Float32 # ROS2 Python class for handling standard messages
+from cv_bridge import CvBridge # ROS2 Python class for handling OpenCV images
+import pyrealsense2 as rs # Intel RealSense library
+import cv2 # OpenCV library
+import numpy as np # NumPy library
+import math # Python library for handling math operations
+import signal # Python library for handling signals
 
 
-class Realsense(Node):
-    def __init__(self, fps=60):
-        super().__init__('realsense')
+class Realsense(Node): # Python class for the Realsense node
+    def __init__(self, fps=60): # Python method for initializing the Realsense node
+        super().__init__('realsense') # Initialize the Realsense node
         # Publishers
-        self.image_publisher = self.create_publisher(Image, 'image', 10)
-        self.detection_publisher = self.create_publisher(String, 'detection', 10)
-        self.distancebottle_publisher = self.create_publisher(Float32, 'distancebottle', 10)
-        self.x_publisher = self.create_publisher(Float32, 'x', 10)
-        self.y_publisher = self.create_publisher(Float32, 'z', 10)
+        self.image_publisher = self.create_publisher(Image, 'image', 10) # Create a publisher for the image messages
+        self.detection_publisher = self.create_publisher(String, 'detection', 10) # Create a publisher for the detection messages
+        self.distancebottle_publisher = self.create_publisher(Float32, 'distancebottle', 10) # Create a publisher for the distance to the bottle
+        self.x_publisher = self.create_publisher(Float32, 'x', 10) # Create a publisher for the x coordinate
+        self.y_publisher = self.create_publisher(Float32, 'z', 10) # Create a publisher for the z coordinate
 
         # Initialize RealSense pipeline
-        self.bridge = CvBridge()
-        self.pipeline = rs.pipeline()
-        self.colorizer = rs.colorizer()
-        config = rs.config()
-        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
-        pipeline_profile = config.resolve(pipeline_wrapper)
-        device = pipeline_profile.get_device()
+        self.bridge = CvBridge() # Initialize the OpenCV bridge
+        self.pipeline = rs.pipeline() # Initialize the RealSense pipeline
+        self.colorizer = rs.colorizer() # Initialize the RealSense colorizer
+        config = rs.config() # Initialize the RealSense configuration
+        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline) # Initialize the RealSense pipeline wrapper
+        pipeline_profile = config.resolve(pipeline_wrapper) # 
+        device = pipeline_profile.get_device() # Get the RealSense device
 
         # Check if RGB camera is available
-        found_rgb = any(s.get_info(rs.camera_info.name) == 'RGB Camera' for s in device.sensors)
-        if not found_rgb:
-            print("Depth camera required!")
-            exit(0)
+        found_rgb = any(s.get_info(rs.camera_info.name) == 'RGB Camera' for s in device.sensors) # Check if RGB camera is available
+        if not found_rgb: # If RGB camera is not available
+            print("Depth camera required!") # Print message
+            exit(0) # Exit the program
 
         config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, fps)
         config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, fps)
