@@ -1,1 +1,13 @@
-
+launch:
+    - node:
+        pkg: "grp_pibot22"
+        exec: "supermove"
+        name: "supermove"
+    - node:
+        pkg: "grp_pibot22"
+        exec: "supercamera"
+    - node:
+        pkg: "rviz2"
+        exec: "rviz2"
+        name: "rviz2"
+        args: "-d $(find-pkg-share grp_pibot22)/config/challenge1_rviz2_config.rviz"
