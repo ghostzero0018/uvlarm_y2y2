@@ -24,8 +24,6 @@ if(BUILD_TESTING)
 endif()
 
 # Python scripts
-install( PROGRAMS scripts/robot_camera DESTINATION lib/${PROJECT_NAME} )
-install( PROGRAMS scripts/basic_move DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/scan_echo DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/detect_ghost DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/basic_move_test DESTINATION lib/${PROJECT_NAME} )
@@ -39,6 +37,7 @@ install( PROGRAMS scripts/ultimate_move DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/supermove DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/supercamera DESTINATION lib/${PROJECT_NAME} )
 install( PROGRAMS scripts/supercamera_proto DESTINATION lib/${PROJECT_NAME} )
+install( PROGRAMS scripts/camera DESTINATION lib/${PROJECT_NAME} )
 
 # Install resource files.
 install(DIRECTORY
