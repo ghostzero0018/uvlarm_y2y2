@@ -20,7 +20,7 @@ ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
 
 ## Project video presentation
 
-Click on the link to see the video:
+Click on the link to see the video: <https://drive.google.com/drive/folders/1Hiq_4_g7iRjQZI4byGUZr2ITPY7ODQ8V?usp=drive_link>
 
 ## Project Launch File Structure
 
