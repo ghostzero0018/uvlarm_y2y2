@@ -34,7 +34,7 @@ Contains configuration files for rviz2 visualizations.
 
 ### `launch`
 
-Includes YAML files for launching various components of the robot system.
+Includes YAML files for launching various components of the robot system (In the folder only containing the launch files that is validated).
 
 - **`launch_basic_move_integ.yaml`**: Launches the basic movement of the robot within one script code.
 - **`launch_basic_move.yaml`**: Launches the basic movement of the robot with two script codes.
