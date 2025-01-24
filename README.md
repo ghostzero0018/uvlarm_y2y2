@@ -1,6 +1,6 @@
 # uvlarm_y2y2 - Robot n°22
 
-## Project description for the UVLARM course
+## Project Description for the UVLARM Course
 
 Project Robot based on ROS2 env, OS Linux
 
@@ -8,11 +8,19 @@ Robot callsign: Pibot22
 
 Authors: Zhiyan.PIAO, Yin.LI, Yinpu.CHEN
 
-The grp_pibot file for Challenge 1 is in the src folder.
+## Project Launch File Structure
 
-## Developers list
+- The simulation launch file for Challenge 1 is src\grp_pibot22\launch\simulation_v1_launch.yaml.
 
-ghostzero0018 -- Laptop of IMT Nord Europe named 'DATA', used by all members of the group
+- The reality launch file for Challenge 1 is src\grp_pibot22\launch\tbot_v1_launch.yaml.
+
+- The vision launch file for Challenge 2 is src\grp_pibot22\launch\vision_launch.yaml.
+
+- The reality launch file for Challenge 2 is src\grp_pibot22\launch\tbot_v2_launch.yaml.
+
+## Developers List
+
+ghostzero0018 -- Laptop of IMT Nord Europe Douai named 'DATA', used by all members of the group
 
 Ghostzero00018 -- Yinpu.CHEN
 
@@ -220,7 +228,7 @@ to have it installed.
 
 This work also relies on Pkg-basic.
 
-## Project Structure and Integration Developer's instructions for others in the group
+## Project Structure and Integration Developer's Instructions for Others in the Group
 
 (If you are the beginner of ROS2 in Linux, then it is also recommended to read this)
 
