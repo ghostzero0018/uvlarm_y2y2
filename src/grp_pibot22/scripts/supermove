@@ -14,7 +14,7 @@ import signal # Python library for handling signals
 
 class Move(Node): # Python class for the Move node
     def __init__(self): # Python method for initializing the Move node
-        super().__init__('ultimate_move') # Initialize the Move node
+        super().__init__('supermove') # Initialize the Move node
         self.initialize_ros_components() # Initialize the ROS components
 
     def initialize_ros_components(self): # Python method for initializing the ROS components
@@ -26,33 +26,33 @@ class Move(Node): # Python class for the Move node
         # Subscribers
         self.create_subscription(Float32, 'x', self.x_callback, 10) # Create a subscriber for the x coordinate
         self.create_subscription(Float32, 'z', self.z_callback, 10) # Create a subscriber for the z coordinate
-        self.create_subscription(Float32, 'bottle_position', self.bottle_position_callback, 10) # Create a subscriber for the bottle position
+        self.create_subscription(Float32, 'object_position', self.object_position_callback, 10) # Create a subscriber for the bottle position
         self.create_subscription(Odometry, 'odom', self.odom_callback, 10) # Create a subscriber for the odometry messages
         self.create_subscription(String, 'detection', self.detection_callback, 10) # Create a subscriber for the detection messages
-        self.create_subscription(Float32, 'distance_bottle', self.distance_bottle_callback, 10) # Create a subscriber for the distance to the bottle
+        self.create_subscription(Float32, 'distance_object', self.distance_object_callback, 10) # Create a subscriber for the distance to the bottle
         self.create_subscription(LaserScan, 'scan', self.scan_callback, 10) # Create a subscriber for the laser scan messages
 
         # State variables
         self.isOk = True # Variable for checking if the node is running
-        self.detection = False # Variable for checking if the bottle is detected
+        self.detection = False # Variable for checking if the object is detected
         self.x_label = None # Variable for storing the x label
         self.y_label = None # Variable for storing the y label
         self.x_add = None # Variable for storing the x addition
         self.y_add = None # Variable for storing the y addition
 
-    def x_callback(self, msg): # Python method for handling the x coordinate
+    def x_callback(self, msg): # Python method for handling the x coordinate 
         self.x_label = msg.data # Store the x label
 
-    def z_callback(self, msg): # Python method for handling the z coordinate
-        self.y_label = msg.data # Store the z label
+    def z_callback(self, msg): # Python method for handling the z coordinate 
+        self.y_label = msg.data # Store the z label 
 
-    def odom_callback(self, msg): # Python method for handling the odometry messages
-        self.x_add = msg.pose.pose.position.x # Store the x addition
-        self.y_add = msg.pose.pose.position.y # Store the y addition
-        self.orientation_euler = msg.pose.pose.orientation.z # Store the orientation
+    def odom_callback(self, msg): # Python method for handling the odometry messages 
+        self.x_add = msg.pose.pose.position.x # Store the x addition 
+        self.y_add = msg.pose.pose.position.y # Store the y addition 
+        self.orientation_euler = msg.pose.pose.orientation.z # Store the orientation in the z axis
 
-    def bottle_position_callback(self, msg): # Python method for handling the bottle position
-        pass # Do nothing
+    def object_position_callback(self, msg): # Python method for handling the object position messages
+        pass # Do nothing for now
    
     def scan_callback(self, scanMsg): # Python method for handling the laser scan messages
         angle = scanMsg.angle_min # Initialize the angle
@@ -90,10 +90,10 @@ class Move(Node): # Python class for the Move node
         self.publish_move(velo, cloud_points) # Publish the velocity command and the point cloud
 
     def detection_callback(self, detectionMsg): # Python method for handling the detection messages
-        self.detection = detectionMsg.data == "bottle founded" # Check if the bottle is detected
+        self.detection = detectionMsg.data == "object found" # Check if the object is detected
 
-    def distance_bottle_callback(self, msg): # Python method for handling the distance to the bottle
-        self.distance_bottle = msg.data # Store the distance to the bottle
+    def distance_object_callback(self, msg): # Python method for handling the distance to the object
+        self.distance_object = msg.data # Store the distance to the object
 
     def publish_move(self, velo, cloud_points): # Python method for publishing the velocity command and the point cloud
         self.velocity_publisher.publish(velo) # Publish the velocity command
@@ -101,20 +101,20 @@ class Move(Node): # Python class for the Move node
 
     def signal_interruption(self, signum, frame): # Python method for handling the signal interruption
         self.get_logger().info("Ctrl-C pressed, shutting down.") # Log the message
-        self.isOk = False # Set the node to not running
+        self.isOk = False # Set the node to not running state
 
 
-def main(args=None): # Python method for the main function
-    rclpy.init(args=args) # Initialize the ROS components
-    ros_node = Move() # Create an instance of the Move node
+def main(args=None): # Python method for the main function 
+    rclpy.init(args=args) # Initialize the ROS components 
+    ros_node = Move() # Create an instance of the Move node 
     signal.signal(signal.SIGINT, ros_node.signal_interruption) # Handle the signal interruption
  
     while ros_node.isOk: # Check if the node is running
         rclpy.spin_once(ros_node, timeout_sec=0.1) # Spin the node
 
-    ros_node.destroy_node() # Destroy the node
+    ros_node.destroy_node() # Destroy the node 
     rclpy.shutdown() # Shutdown the ROS components
 
 
-if __name__ == '__main__': # Check if the script is being run directly
-    main() # Run the main function
+if __name__ == '__main__': # Check if the script is being run directly 
+    main() # Run the main function 

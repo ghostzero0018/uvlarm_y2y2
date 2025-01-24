@@ -8,167 +8,168 @@ from cv_bridge import CvBridge # ROS2 Python class for handling OpenCV images
 import pyrealsense2 as rs # Intel RealSense library
 import cv2 # OpenCV library
 import numpy as np # NumPy library
-import math # Python library for handling math operations
-import signal # Python library for handling signals
+import math # Python library for handling math operations 
+import signal # Python library for handling signals 
 
 
-class Realsense(Node): # Python class for the Realsense node
-    def __init__(self, fps=60): # Python method for initializing the Realsense node
-        super().__init__('realsense') # Initialize the Realsense node
-        # Publishers
-        self.image_publisher = self.create_publisher(Image, 'image', 10) # Create a publisher for the image messages
-        self.detection_publisher = self.create_publisher(String, 'detection', 10) # Create a publisher for the detection messages
-        self.distancebottle_publisher = self.create_publisher(Float32, 'distancebottle', 10) # Create a publisher for the distance to the bottle
+class Realsense(Node): # Python class for the Realsense node 
+    def __init__(self, fps=60): # Python method for initializing the Realsense node with a default FPS of 60
+        super().__init__('realsense') # Initialize the Realsense node 
+        # Publishers for image, detection, distance, x, and z coordinates
+        self.image_publisher = self.create_publisher(Image, 'image', 10) # Create a publisher for the image messages 
+        self.detection_publisher = self.create_publisher(String, 'detection', 10) # Create a publisher for the detection messages 
+        self.distanceobject_publisher = self.create_publisher(Float32, 'distanceobject', 10) # Create a publisher for the distance messages
         self.x_publisher = self.create_publisher(Float32, 'x', 10) # Create a publisher for the x coordinate
-        self.y_publisher = self.create_publisher(Float32, 'z', 10) # Create a publisher for the z coordinate
+        self.y_publisher = self.create_publisher(Float32, 'z', 10) # Create a publisher for the z coordinate 
 
         # Initialize RealSense pipeline
-        self.bridge = CvBridge() # Initialize the OpenCV bridge
-        self.pipeline = rs.pipeline() # Initialize the RealSense pipeline
-        self.colorizer = rs.colorizer() # Initialize the RealSense colorizer
-        config = rs.config() # Initialize the RealSense configuration
-        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline) # Initialize the RealSense pipeline wrapper
-        pipeline_profile = config.resolve(pipeline_wrapper) # 
-        device = pipeline_profile.get_device() # Get the RealSense device
+        self.bridge = CvBridge() # Initialize the OpenCV bridge object
+        self.pipeline = rs.pipeline() # Initialize the RealSense pipeline object
+        self.colorizer = rs.colorizer() # Initialize the RealSense colorizer object
+        config = rs.config() # Initialize the RealSense configuration object
+        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline) # Initialize the RealSense pipeline wrapper 
+        pipeline_profile = config.resolve(pipeline_wrapper) # Resolve the RealSense pipeline wrapper
+        device = pipeline_profile.get_device() # Get the RealSense device from the pipeline profile
 
-        # Check if RGB camera is available
-        found_rgb = any(s.get_info(rs.camera_info.name) == 'RGB Camera' for s in device.sensors) # Check if RGB camera is available
-        if not found_rgb: # If RGB camera is not available
-            print("Depth camera required!") # Print message
-            exit(0) # Exit the program
+        # Check if RGB camera is available 
+        found_rgb = any(s.get_info(rs.camera_info.name) == 'RGB Camera' for s in device.sensors) # Check if RGB camera is available 
+        if not found_rgb: # If RGB camera is not available 
+            print("Depth camera required!") # Print message to the console
+            exit(0) # Exit the program 
 
-        config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, fps)
-        config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, fps)
+        config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, fps) # Enable color stream 
+        config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, fps) # Enable depth stream 
 
         # Align depth to color
-        self.align_to = rs.stream.color
-        self.align = rs.align(self.align_to)
+        self.align_to = rs.stream.color # Initialize the RealSense align object with the color stream
+        self.align = rs.align(self.align_to) # Initialize the RealSense align object with the color stream
 
         # Start streaming
-        self.pipeline.start(config)
-        self.isOk = True
-        self.color_info = (0, 0, 255)
-        self.no_object_logged = False  # To track "No object detected" state
+        self.pipeline.start(config) # Start the RealSense pipeline 
+        self.isOk = True # Variable for checking if the node is running 
+        self.color_info = (0, 0, 255) # Color for object detection info
+        self.no_object_logged = False  # To track "No object detected" state in logs
 
-    def read_imgs(self):
-        frames = self.pipeline.wait_for_frames()
+    def read_imgs(self): # Python method for reading the images from the RealSense camera
+        frames = self.pipeline.wait_for_frames() # Wait for frames from the RealSense pipeline
 
-        # Align color frame to depth frame
-        aligned_frames = self.align.process(frames)
-        depth_frame = aligned_frames.get_depth_frame()
-        color_frame = aligned_frames.get_color_frame()
+        # Align color frame to depth frame for object detection
+        aligned_frames = self.align.process(frames) # Align the frames for object detection 
+        depth_frame = aligned_frames.get_depth_frame() # Get the depth frame from the aligned frames
+        color_frame = aligned_frames.get_color_frame() # Get the color frame from the aligned frames
 
-        if not depth_frame or not color_frame:
-            print("Frames not available.")
-            return
+        if not depth_frame or not color_frame: # If frames are not available 
+            print("Frames not available.") # Print message to the console 
+            return # Return if frames are not available  
 
         # Get images
-        depth_image = np.asanyarray(depth_frame.get_data())
-        self.color_image = np.asanyarray(color_frame.get_data())
+        depth_image = np.asanyarray(depth_frame.get_data()) # Get the depth image 
+        self.color_image = np.asanyarray(color_frame.get_data()) # Get the color image 
 
         # Convert to HSV and apply mask
-        hsv = cv2.cvtColor(self.color_image, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
-        mask = ((50 < h) & (h < 85) & (s > 100) & (v > 50)).astype(np.uint8) * 255
+        hsv = cv2.cvtColor(self.color_image, cv2.COLOR_BGR2HSV) # Convert the color image to HSV format
+        h, s, v = cv2.split(hsv) # Split the HSV channels 
+        mask = ((50 < h) & (h < 85) & (s > 100) & (v > 50)).astype(np.uint8) * 255 # Create a mask for object detection 
 
         # Improve mask with morphological operations
-        kernel = np.ones((5, 5), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        kernel = np.ones((5, 5), np.uint8) # Initialize the kernel for morphological operations
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel) # Apply morphological closing
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel) # Apply morphological opening
 
         # Detect objects
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) # Find contours in the mask
         print(f"Contours detected: {len(contours)}")  # Debug log
 
-        detected_objects = []
-        if contours:
-            for contour in contours:
-                ((x, y), radius) = cv2.minEnclosingCircle(contour)
+        detected_objects = [] # Initialize the list of detected objects
+        if contours: # If contours are detected
+            for contour in contours: # Iterate through the contours
+                ((x, y), radius) = cv2.minEnclosingCircle(contour) # Get the minimum enclosing circle
                 if radius > 10:  # Threshold for small object elimination
-                    detected_objects.append((x, y, radius))
+                    detected_objects.append((x, y, radius)) # Append the detected object
 
         # Filter overlapping detections
-        filtered_objects = self.filter_overlapping_circles(detected_objects)
+        filtered_objects = self.filter_overlapping_circles(detected_objects) # Filter overlapping detections
 
         # Draw and log objects
-        if filtered_objects:
-            for x, y, radius in filtered_objects:
-                self.draw_object(x, y, radius, depth_frame, color_frame)
-            self.no_object_logged = False
+        if filtered_objects: # If objects are detected
+            for x, y, radius in filtered_objects: # Iterate through the filtered objects 
+                self.draw_object(x, y, radius, depth_frame, color_frame) # Draw the object markers
+            self.no_object_logged = False # Reset "No object detected" state to False
         else:
-            if not self.no_object_logged:
-                print("No object detected.")
-                self.no_object_logged = True
+            if not self.no_object_logged: # Log "No object detected" only once per frame
+                print("No object detected.") # Print message to the console 
+                self.no_object_logged = True # Set "No object detected" state to True
 
-        # Display images
-        cv2.imshow('RealSense - Color', self.color_image)
-        cv2.imshow('RealSense - Grayscale', mask)  # Show grayscale image
-        cv2.waitKey(1)
+        # Display images with OpenCV
+        cv2.imshow('RealSense - Color', self.color_image) # Show color image for object detection
+        cv2.imshow('RealSense - Grayscale', mask)  # Show grayscale image for object detection
+        cv2.waitKey(1) # Wait for a key press 
 
-    def filter_overlapping_circles(self, objects, overlap_threshold=30):
+    def filter_overlapping_circles(self, objects, overlap_threshold=30): # Python method for filtering overlapping circles 
         """
-        Filter overlapping circles based on the Euclidean distance between their centers.
+        Filter overlapping circles based on the Euclidean distance between their centers.    
         """
-        filtered = []
-        for obj in objects:
-            x1, y1, r1 = obj
-            add_object = True
-            for fx, fy, fr in filtered:
+        filtered = [] # Initialize the filtered list
+        for obj in objects: # Iterate through the objects
+            x1, y1, r1 = obj # Get the object coordinates and radius
+            add_object = True # Initialize the add object flag
+            for fx, fy, fr in filtered: # Iterate through the filtered objects
                 distance = math.sqrt((x1 - fx) ** 2 + (y1 - fy) ** 2)
-                if distance < overlap_threshold:
-                    add_object = False
-                    break
-            if add_object:
-                filtered.append(obj)
-        return filtered
+                if distance < overlap_threshold: # Check if the distance is less than the threshold
+                    add_object = False # Set the add object flag to False
+                    break # Break the loop 
+            if add_object: # If the object can be added 
+                filtered.append(obj) # Append the object to the filtered list
+        return filtered # Return the filtered list
 
-    def draw_object(self, x, y, radius, depth_frame, color_frame):
-        x, y = int(x), int(y)
-        depth = depth_frame.get_distance(x, y)
+    def draw_object(self, x, y, radius, depth_frame, color_frame): # Python method for drawing the object markers
+       # Calculate distance to object
+        x, y = int(x), int(y) # Convert to integer
+        depth = depth_frame.get_distance(x, y) # Get the depth value at the object coordinates
 
         if depth > 0:  # Only calculate distance if valid depth is available
-            intrinsics = color_frame.profile.as_video_stream_profile().intrinsics
-            dx, dy, dz = rs.rs2_deproject_pixel_to_point(intrinsics, [x, y], depth)
-            distance = math.sqrt(dx**2 + dy**2 + dz**2)
+            intrinsics = color_frame.profile.as_video_stream_profile().intrinsics # Get camera intrinsics
+            dx, dy, dz = rs.rs2_deproject_pixel_to_point(intrinsics, [x, y], depth) # Deproject pixel to point
+            distance = math.sqrt(dx**2 + dy**2 + dz**2) # Calculate Euclidean distance
 
             # Print detection message
-            print(f"Object detected at ({x}, {y}) with distance: {distance:.2f}m")
+            print(f"Object detected at ({x}, {y}) with distance: {distance:.2f}m") # Debug log
 
             # Draw object markers
-            cv2.circle(self.color_image, (x, y), int(radius), self.color_info, 2)
-            cv2.putText(self.color_image, f"Dist: {distance:.2f}m", (x + 10, y - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.color_info, 2)
+            cv2.circle(self.color_image, (x, y), int(radius), self.color_info, 2) # Draw circle around object 
+            cv2.putText(self.color_image, f"Dist: {distance:.2f}m", (x + 10, y - 10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.color_info, 2) # Add distance info to object marker 
         else:
-            print(f"Object detected at ({x}, {y}) but distance unknown.")
+            print(f"Object detected at ({x}, {y}) but distance unknown.") # Debug log 
 
-    def publish_imgs(self):
+    def publish_imgs(self): # Python method for publishing the images
         # Publish processed image
-        msg_image = self.bridge.cv2_to_imgmsg(self.color_image, "bgr8")
-        self.image_publisher.publish(msg_image)
+        msg_image = self.bridge.cv2_to_imgmsg(self.color_image, "bgr8") # Convert the color image to ROS message
+        self.image_publisher.publish(msg_image) # Publish the color image message
 
-    def signalInterruption(self, signum, frame):
-        print("\nCtrl-C pressed")
-        self.isOk = False
+    def signalInterruption(self, signum, frame): # Python method for handling the signal interruption
+        print("\nCtrl-C pressed") # Print message to the console
+        self.isOk = False # Set the node to not running
 
 
 def process_img(args=None):
-    rclpy.init(args=args)
-    rsNode = Realsense()
-    signal.signal(signal.SIGINT, rsNode.signalInterruption)
+    rclpy.init(args=args) # Initialize the ROS components
+    rsNode = Realsense() # Initialize the Realsense node
+    signal.signal(signal.SIGINT, rsNode.signalInterruption) # Handle the signal interruption
 
     while rsNode.isOk:
-        rsNode.read_imgs()
-        rsNode.publish_imgs()
-        rclpy.spin_once(rsNode, timeout_sec=0.001)
+        rsNode.read_imgs() # Read the images from the RealSense camera
+        rsNode.publish_imgs() # Publish the images
+        rclpy.spin_once(rsNode, timeout_sec=0.001) # Spin the node
 
     # Clean shutdown
-    rsNode.pipeline.stop()
-    rsNode.destroy_node()
-    rclpy.shutdown()
+    rsNode.pipeline.stop() # Stop the RealSense pipeline 
+    rsNode.destroy_node() # Destroy the node 
+    rclpy.shutdown() # Shutdown the ROS components 
 
 
-if __name__ == '__main__':
-    process_img()
+if __name__ == '__main__': # Check if the script is being run directly
+    process_img() # Process the images
 
 
 
