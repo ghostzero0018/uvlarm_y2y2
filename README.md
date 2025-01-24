@@ -44,24 +44,20 @@ Contains configuration files for rviz2 visualizations.
 
 Includes YAML files for launching various components of the robot system (In the folder only containing the launch files that is validated).
 
-- **`launch_basic_move_integ.yaml`**: Launches the basic movement of the robot within one script code.
-- **`launch_basic_move.yaml`**: Launches the basic movement of the robot with two script codes.
-- **`launch_basic_move_test.yaml`**: Launches the test-version basic movement of the robot.
-- **`launch_robot_camera.yaml`**: Launches the camera for green ghost detection.
-- **`launch_scan_echo.yaml`**: Launches the test of LIDAR.
-- **`simulation_v1_launch.yaml`**: Launches the complete simulation setup for challenge 1.
-- **`tbot_v1_launch.yaml`**: Launches the complete real-life test for challenge 1.
+- **`simulation_v1_launch.yaml`**: Launches the simulation setup for challenge 1.
+- **`tbot_v1_launch.yaml`**: Launches the reality test for challenge 1.
+- **`vision_launch.yaml`**: Launches the vision detection part for challenge 2.
+- **`tbot_v2_launch.yaml`**: Launches the reality test for challenge 2.
 
 ### `scripts`
 
 Contains scripts that perform specific tasks within the robot system.
 
-- **`basic_move`**: Script for controlling the robot's movement.
-- **`basic_move_integ`**: Script for controlling the robot's movement within one script file.
 - **`basic_move_test`**: Script for controlling the robot's test-version movement.
 - **`robot_camera`**: Handles image capture and analysis.
-- **`detect_ghost`**: Detects green ghosts in the camera feed.
-- **`scan_echo`**: Processes data from the LIDAR.
+- **`detect_ghost`**: Detects green objects in the camera feed.
+- **`supercamera`**: Detects green objects and giving distance feedback in the camera window.
+- **`supermove`**: Better movement.
 
 ### Root Files
 
