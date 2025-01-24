@@ -2,10 +2,10 @@ launch:
   - include:
       file: "$(find-pkg-share tbot_sim)/launch/challenge-1.launch.py"
   - node:
-        pkg: "basic_node"
-        exec: "multiplexer"
+        pkg: "basic_node" # This is the exterior node that will be used to communicate with the multiplexer
+        exec: "multiplexer" 
   - node:
         pkg: "grp_pibot22"
-        exec: "ultimate_move"
+        exec: "basic_move_test"
         param: 
         - { name: "command_topic", value: 'cmd_nav'}
