@@ -1,4 +1,0 @@
-launch:
-    - node:
-        pkg: "grp_pibot22"
-        exec: "scan_echo"

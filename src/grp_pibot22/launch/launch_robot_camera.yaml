@@ -1,7 +1,0 @@
-launch:
-    - node:
-        pkg: "grp_pibot22"
-        exec: "robot_camera"
-    - node:
-        pkg: "grp_pibot22"
-        exec: "augmented_detect"
