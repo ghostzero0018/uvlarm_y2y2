@@ -72,22 +72,37 @@ class Move(Node): # Python class for the Move node
             angle += scanMsg.angle_increment # Update the angle
         self.handle_obstacles(cmd_debug_points_left, cmd_debug_points_right, obstacles) # Handle the obstacles
 
-    def handle_obstacles(self, left_points, right_points, obstacles): # Python method for handling the obstacles
-        velo = Twist() # Initialize the velocity command
-        if len(right_points) > 0: # Check if there are obstacles on the right side
-            self.get_logger().info("Avoiding left") # Log the message
-            velo.angular.z = 1.5 # Set the angular velocity
-            velo.linear.x = 0.05 # Set the linear velocity
-        elif len(left_points) > 0: # Check if there are obstacles on the left side
-            self.get_logger().info("Avoiding right") # Log the message
-            velo.angular.z = -1.5 # Set the angular velocity
-            velo.linear.x = 0.05 # Set the linear velocity
-        else: # Otherwise
-            velo.linear.x = 0.15 # Set the linear velocity
-            velo.angular.z = 0.0 # Set the angular velocity
-
-        cloud_points = pc2.create_cloud_xyz32(Header(frame_id='laser_link'), obstacles) # Create the point cloud
-        self.publish_move(velo, cloud_points) # Publish the velocity command and the point cloud
+    def handle_obstacles(self, left_points, right_points, obstacles): 
+        # Initialize the velocity command
+        velo = Twist() 
+    
+        # Check if there are obstacles on both sides
+        if len(right_points) > 0 and len(left_points) > 0: 
+            self.get_logger().info("Obstacles on both sides, turning left") 
+            velo.angular.z = 1.5  # Turn left
+            velo.linear.x = 0.05  # Slow forward motion
+    
+        # Check if there are obstacles on the right side
+        elif len(right_points) > 0: 
+            self.get_logger().info("Turning left") 
+            velo.angular.z = 1.5  # Turn left
+            velo.linear.x = 0.05  # Slow forward motion
+    
+        # Check if there are obstacles on the left side
+        elif len(left_points) > 0: 
+            self.get_logger().info("Turning right") 
+            velo.angular.z = -1.5  # Turn right
+            velo.linear.x = 0.05  # Slow forward motion
+    
+        # Otherwise, no obstacles
+        else: 
+            self.get_logger().info("No obstacles, moving forward") 
+            velo.linear.x = 0.15  # Move forward
+            velo.angular.z = 0.0  # No rotation
+    
+        # Create and publish the point cloud for visualization
+        cloud_points = pc2.create_cloud_xyz32(Header(frame_id='laser_link'), obstacles)
+        self.publish_move(velo, cloud_points)
 
     def detection_callback(self, detectionMsg): # Python method for handling the detection messages
         self.detection = detectionMsg.data == "object found" # Check if the object is detected
