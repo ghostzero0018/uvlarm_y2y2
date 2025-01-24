@@ -22,6 +22,8 @@ ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
 
 Click on the link to see the video: <https://drive.google.com/drive/folders/1Hiq_4_g7iRjQZI4byGUZr2ITPY7ODQ8V?usp=drive_link>
 
+For viewing the video with subtitles please download all the files( one is in **`.mp4`** format and another one is in **`.srt`** format) and put them all in the same folder; after that please use a multimdeia software called **`VLC Player`** to run the  **`.mp4`** file, then you will see the subtitles in the video.
+
 ## Project Launch File Structure
 
 - The simulation launch file for Challenge 1 is src\grp_pibot22\launch\simulation_v1_launch.yaml.
