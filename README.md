@@ -8,16 +8,6 @@ Robot callsign: Pibot22
 
 Authors: Zhiyan.PIAO, Yin.LI, Yinpu.CHEN
 
-## Project Launch File Structure
-
-- The simulation launch file for Challenge 1 is src\grp_pibot22\launch\simulation_v1_launch.yaml.
-
-- The reality launch file for Challenge 1 is src\grp_pibot22\launch\tbot_v1_launch.yaml.
-
-- The vision launch file for Challenge 2 is src\grp_pibot22\launch\vision_launch.yaml.
-
-- The reality launch file for Challenge 2 is src\grp_pibot22\launch\tbot_v2_launch.yaml.
-
 ## Developers List
 
 ghostzero0018 -- Laptop of IMT Nord Europe Douai named 'DATA', used by all members of the group
@@ -27,6 +17,20 @@ Ghostzero00018 -- Yinpu.CHEN
 YinLi-Y2Y2 -- Yin.LI
 
 ZhiyanPiao-Y2Y2 -- Zhiyan.PIAO
+
+## Project video presentation
+
+Click on the link to see the video:
+
+## Project Launch File Structure
+
+- The simulation launch file for Challenge 1 is src\grp_pibot22\launch\simulation_v1_launch.yaml.
+
+- The reality launch file for Challenge 1 is src\grp_pibot22\launch\tbot_v1_launch.yaml.
+
+- The vision launch file for Challenge 2 is src\grp_pibot22\launch\vision_launch.yaml.
+
+- The reality launch file for Challenge 2 is src\grp_pibot22\launch\tbot_v2_launch.yaml.
 
 ## Package Contents
 
@@ -44,7 +48,7 @@ Contains configuration files for rviz2 visualizations.
 
 Includes YAML files for launching various components of the robot system (In the folder only containing the launch files that is validated).
 
-- **`simulation_v1_launch.yaml`**: Launches the simulation setup for challenge 1.
+- **`simulation_v1_launch.yaml`**: Launches the simulation setup for challenge 1. (For running this launch file you need to have **`basic_node`** pkg installed)
 - **`tbot_v1_launch.yaml`**: Launches the reality test for challenge 1.
 - **`vision_launch.yaml`**: Launches the vision detection part for challenge 2.
 - **`tbot_v2_launch.yaml`**: Launches the reality test for challenge 2.
